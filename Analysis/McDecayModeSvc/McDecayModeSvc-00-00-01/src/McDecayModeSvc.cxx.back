@@ -1,0 +1,95 @@
+#include <algorithm>
+#include "GaudiKernel/MsgStream.h"
+#include "McTruth/McParticle.h"
+#include "McDecayModeSvc/McDecayModeSvc.h"
+#include "McDecayModeSvc/DecayModes.h"
+#include "McDecayModeSvc/PartId2Name.h"
+
+using Event::McParticle;
+
+McDecayModeSvc::McDecayModeSvc(const std::string& name, ISvcLocator* svcLoc)
+  : Service(name, svcLoc), m_decayModes(0)
+{
+  declareProperty("pdt_file", m_pdt);
+  declareProperty("NoTracingList", m_noTracing);
+}
+
+McDecayModeSvc::~McDecayModeSvc()
+{
+}
+
+StatusCode McDecayModeSvc::initialize()
+{
+  MsgStream log(messageService(), name());
+  log << MSG::INFO << "@initialize()" << endreq;
+
+  StatusCode sc = Service::initialize();
+
+  if (sc.isSuccess()) m_decayModes = new DecayModes();
+
+  PartId2Name::instance(m_pdt);
+
+  return sc;
+}
+
+StatusCode McDecayModeSvc::finalize()
+{
+  MsgStream log(messageService(), name());
+  log << MSG::INFO << "@finalize()" << endreq;
+
+  if (m_decayModes) delete m_decayModes;
+
+  //PartId2Name* id2name = PartId2Name::instance();
+  //if (id2name) delete id2name;
+  PartId2Name::release();
+
+  StatusCode sc = Service::finalize();
+  return sc;
+}
+
+StatusCode McDecayModeSvc::queryInterface(const InterfaceID& riid, void** ppvIF)
+{
+  if (IMcDecayModeSvc::interfaceID().versionMatch(riid)) {
+    *ppvIF = dynamic_cast<IMcDecayModeSvc*>(this);
+  }
+  else {
+    return Service::queryInterface(riid, ppvIF);
+  }
+  addRef();
+  return StatusCode::SUCCESS;
+}
+
+int McDecayModeSvc::extract(McParticle* prim)
+{
+  //MsgStream log(messageService(), name());
+
+  DecayParticle* d_prim = new DecayParticle(prim->particleProperty());
+  checkDecay(prim, d_prim);
+
+  return m_decayModes->addMode(d_prim);
+}
+
+void McDecayModeSvc::summary(std::ostream& os) const {
+  m_decayModes->printToStream(os);
+}
+
+void McDecayModeSvc::checkDecay(const McParticle* mother, DecayParticle* d_mother)
+{
+  if ( ! mother->leafParticle() ) {
+    int id_tmp = mother->particleProperty();
+    std::vector<int>::iterator it_tmp = find(m_noTracing.begin(), m_noTracing.end(), id_tmp);
+    if ( it_tmp == m_noTracing.end() ) {
+      const SmartRefVector<McParticle>& daughters = mother->daughterList();
+      SmartRefVector<McParticle>::const_iterator it = daughters.begin();
+      SmartRefVector<McParticle>::const_iterator end = daughters.end();
+
+      for ( ; it != end; it++) {
+	int d_id = (*it)->particleProperty();
+
+	DecayParticle* d_daughter = d_mother->addDaughter(d_id);
+
+	checkDecay(it->data(), d_daughter);
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+#include "$VERTEXFITROOT/share/jobOptions_VertexDbSvc.txt"
+ApplicationMgr.DLLs += {"DeltakkpiAlg"};
+ApplicationMgr.TopAlg += { "Deltakkpi" };
+
+Deltakkpi.Decay_kkpi   = 1;
+
+Deltakkpi.HaveKaon = 1;
+Deltakkpi.HavePion = 1;
+
+Deltakkpi.CheckTotal = 1;

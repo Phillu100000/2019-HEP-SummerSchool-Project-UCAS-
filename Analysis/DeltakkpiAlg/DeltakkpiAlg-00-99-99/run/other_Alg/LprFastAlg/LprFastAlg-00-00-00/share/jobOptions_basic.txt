@@ -1,0 +1,19 @@
+#include "$MCDECAYMODESVCROOT/share/GetDecayMode.txt"
+#include "$EVENTWRITERROOT/share/jobOptions_EventWriter.txt"
+ApplicationMgr.DLLs += {"LprFastAlg"};
+ApplicationMgr.TopAlg +={"basic" };
+
+#include "$VERTEXFITROOT/share/jobOptions_VertexDbSvc.txt"
+
+basic.HaveEle=0;
+basic.HaveKaon=0;
+basic.HavePion=0;
+basic.HaveProton=0;
+basic.HaveKs=0;
+basic.HaveLambda=0;
+basic.HavePi0=0;
+basic.HaveEta=0;
+
+
+basic.Debug=0;
+basic.CheckTotal=0;

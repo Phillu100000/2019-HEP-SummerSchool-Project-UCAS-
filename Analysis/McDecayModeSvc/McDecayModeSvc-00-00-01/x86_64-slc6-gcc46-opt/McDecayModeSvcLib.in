@@ -1,0 +1,30 @@
+library McDecayModeSvcLib -prototypes *.cxx
+make_fragment make_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/make_header
+make_fragment dependencies /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/dependencies
+make_fragment cleanup_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cleanup_header
+make_fragment protos_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/protos_header
+make_fragment buildproto /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/buildproto
+make_fragment dependencies_and_triggers /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/dependencies_and_triggers
+make_fragment java /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/java
+make_fragment java_copy /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/java_copy
+make_fragment cleanup /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cleanup
+make_fragment cleanup_java /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cleanup_java
+make_fragment jar_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/jar_header
+make_fragment library_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/library_header
+make_fragment jar /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/jar
+make_fragment library_no_share /data/lzuhep/sw/Boss/dist/7.0.3/BesPolicy/BesPolicy-01-05-05/cmt/fragments/library_no_share
+make_fragment library_no_static /data/lzuhep/sw/Boss/gaudi/GAUDI_v23r9/GaudiPolicy/cmt/fragments/library_no_static
+make_fragment library /data/lzuhep/sw/Boss/dist/7.0.3/BesPolicy/BesPolicy-01-05-05/cmt/fragments/library
+make_fragment cleanup_library /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cleanup_library
+make_fragment fortran_library /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/fortran_library
+make_fragment c_library /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/c_library
+make_fragment cpp_library /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cpp_library
+make_fragment yacc_library /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/yacc_library
+make_fragment lex_library /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/lex_library
+language fortran -suffix=f -suffix=F -linker=$(flink) -preprocessor_command=$(ppcmd)
+language c -suffix=c -linker=$(clink) -prototypes -dependencies_options=-MMD" "-MP" "-MF" "$*.d" "-MQ" "$@
+language c++ -suffix=C -suffix=cc -suffix=cxx -suffix=cpp -linker=$(cpplink) -fragment=cpp -dependencies_options=-MMD" "-MP" "-MF" "$*.d" "-MQ" "$@
+language java -suffix=java -linker=java
+language yacc -suffix=y -linker=$(clink) -prototypes
+language lex -suffix=l -linker=$(clink) -prototypes
+language fortran90 -suffix=ff90 -suffix=FF90 -suffix=f90 -suffix=F90 -linker=$(f90link) -preprocessor_command=$(ppcmd)

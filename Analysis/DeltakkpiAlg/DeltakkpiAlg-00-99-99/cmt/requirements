@@ -1,0 +1,21 @@
+package DeltakkpiAlg
+author He Kanglin <hekl@ihep.ac.cn>
+
+use BesPolicy BesPolicy-*
+use GaudiInterface GaudiInterface-* External
+
+use EventModel       EventModel-*       Event
+use EvtRecEvent      EvtRecEvent-*      Event
+use ParticleID       ParticleID-*       Analysis
+ 
+#use DecayChain       DecayChain-*       Event
+use McDecayModeSvc   McDecayModeSvc-*   Analysis          
+use BesDChain        BesDChain-*        Event
+use Pi0EtaToGGRecAlg Pi0EtaToGGRecAlg-* Reconstruction
+ 
+#use ParvSel          ParvSel-*          Analysis
+
+apply_pattern component_library 
+library DeltakkpiAlg  *.cxx  components/*.cxx
+
+apply_pattern declare_runtime files=*.txt

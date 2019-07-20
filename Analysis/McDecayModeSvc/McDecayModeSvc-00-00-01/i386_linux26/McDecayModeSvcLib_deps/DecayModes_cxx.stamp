@@ -1,0 +1,1 @@
+DecayModes_cxx_dependencies =  ../src/DecayModes.cxx   /ihepbatch/bes/zhangr/6.5.5/InstallArea/include/McDecayModeSvc/McDecayModeSvc/DecayParticle.h   /ihepbatch/bes/zhangr/6.5.5/InstallArea/include/McDecayModeSvc/McDecayModeSvc/DecayModes.h  $(bin)McDecayModeSvcLib_deps/DecayModes_cxx.stamp

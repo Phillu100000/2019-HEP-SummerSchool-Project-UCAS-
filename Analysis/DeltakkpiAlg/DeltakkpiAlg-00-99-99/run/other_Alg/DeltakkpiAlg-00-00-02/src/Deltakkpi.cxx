@@ -1,0 +1,973 @@
+//******* test of Reconstruction mctruth ****************
+#include "DeltakkpiAlg/Deltakkpi.h"
+#include "DeltakkpiAlg/ReadBeamInfFromDb.h"
+
+#include "GaudiKernel/MsgStream.h"
+#include "GaudiKernel/ISvcLocator.h"
+#include "GaudiKernel/IDataProviderSvc.h"
+#include "GaudiKernel/IJobOptionsSvc.h"
+#include "GaudiKernel/Bootstrap.h"
+#include "GaudiKernel/IMessageSvc.h"
+#include "GaudiKernel/StatusCode.h"
+#include "GaudiKernel/SmartDataPtr.h"
+#include "GaudiKernel/AlgFactory.h"
+#include "GaudiKernel/PropertyMgr.h"
+
+
+#include "EvtRecEvent/EvtRecEvent.h"
+#include "EvtRecEvent/EvtRecTrack.h"
+#include "EvtRecEvent/EvtRecVeeVertex.h"
+#include "EvtRecEvent/EvtRecPi0.h"
+#include "McTruth/McParticle.h"
+
+#include "VertexFit/IVertexDbSvc.h"
+#include "VertexFit/KalmanKinematicFit.h"
+#include "VertexFit/SecondVertexFit.h"
+#include "VertexFit/VertexFit.h"
+
+#include "DstEvent/TofHitStatus.h"
+
+#include "EventModel/EventModel.h"
+#include "EventModel/Event.h"
+#include "EventModel/EventHeader.h"
+
+#include "EvtRecEvent/EvtRecDTag.h"
+#include "EvtRecEvent/EvtRecEtaToGG.h"
+#include "MdcRecEvent/RecMdcKalTrack.h"
+
+#include "TRandom.h"
+#include "TMath.h"
+#include "GaudiKernel/INTupleSvc.h"
+#include "GaudiKernel/NTuple.h"
+#include "GaudiKernel/IHistogramSvc.h"
+#include "CLHEP/Vector/ThreeVector.h"
+#include "CLHEP/Vector/LorentzVector.h"
+#include "CLHEP/Vector/TwoVector.h"
+#include "CLHEP/Geometry/Point3D.h"
+
+#include "McDecayModeSvc/McDecayModeSvc.h"
+
+#include "VertexFit/Helix.h"
+#include "VertexFit/KinematicFit.h"
+#include "ParticleID/ParticleID.h"
+#include <vector>
+
+using CLHEP::Hep3Vector;
+using CLHEP::Hep2Vector;
+using CLHEP::HepLorentzVector;
+#ifndef ENABLE_BACKWARDS_COMPATIBILITY
+typedef HepGeom::Point3D<double> HepPoint3D;
+#endif
+
+typedef std::vector<int> Vint;
+typedef std::vector<double> Vdou;
+typedef std::vector<HepLorentzVector> Vp4;
+
+using namespace Event;
+
+const double xmass[5] = {0.000511, 0.105658, 0.139570,0.493677, 0.938272};//0=electron 1=muon 2=pion 3=kaon 4=proton
+const double mpi0 =  0.134976;
+const double mpion = 0.13957;
+const double mkaon = 0.493677;
+int t_count = 0;
+int t_gam = 0;
+int t_Dsp = 0;
+int t_Dsm = 0;
+
+//*********************** Algorithm ***************************************
+Deltakkpi::Deltakkpi(const std::string& name, ISvcLocator* pSvcLocator):Algorithm(name, pSvcLocator){
+    m_ntot = 0;  m_debug = 0;
+    declareProperty("Decay_kkpi", decay_kkpi  = 1);
+    declareProperty("CheckTotal", m_checktotal = 1);
+    declareProperty("HaveKaon",   m_HaveKaon   = 1);
+    declareProperty("HavePion",   m_HavePion   = 1);
+}
+
+
+//********************** initialize ***************************************
+StatusCode Deltakkpi::initialize(){
+    MsgStream log(msgSvc(), name());
+    StatusCode scmgn = service ("MagneticFieldSvc",m_pIMF);
+    if(scmgn!=StatusCode::SUCCESS) {
+        log << MSG::ERROR << "Unable to open Magnetic field service"<<endreq;
+    }
+    log << MSG::INFO << "in initialize()" << endreq;
+    StatusCode status;
+
+    if(decay_kkpi){
+        NTuplePtr nt10(ntupleSvc(), "FILE1/kkpi");
+        if(nt10) m_nt10 = nt10;
+        else{
+            m_nt10 = ntupleSvc()->book("FILE1/kkpi", CLID_ColumnWiseTuple, "Ds ST Study");
+        }
+        if(m_nt10){
+            status = m_nt10->addItem("mDs_kkpi",       m_mDs_kkpi);
+            status = m_nt10->addItem("mDsgam_kkpi",    m_mDsgam_kkpi);
+            status = m_nt10->addItem("rec_Ds_kkpi",    m_mrec_Ds_kkpi);
+            status = m_nt10->addItem("eDs_kkpi",       m_eDs_kkpi);
+            status = m_nt10->addItem("delta_E_kkpi",   m_delta_E_kkpi);
+            
+            status = m_nt10->addItem("runNo_kkpi",     m_runNo_kkpi);
+            status = m_nt10->addItem("event_kkpi",     m_event_kkpi);
+            status = m_nt10->addItem("ngam_kkpi",      m_ngam_kkpi);
+            status = m_nt10->addItem("nchg_kkpi",      m_nchg_kkpi);
+            status = m_nt10->addItem("charge_kkpi",    m_charge_kkpi);
+            status = m_nt10->addItem("chargpion_kkpi", m_chargpion_kkpi);
+
+            status = m_nt10->addItem("mDs_1c_kkpi",       m_mDs_1c);
+            status = m_nt10->addItem("mDsgam_1c_kkpi",    m_mDsgam_1c);
+            status = m_nt10->addItem("rec_Ds_1c_kkpi",    m_mrec_Ds_1c);
+            status = m_nt10->addItem("rec_Dsgam_1c_kkpi", m_mrec_Dsgam_1c);
+            status = m_nt10->addItem("delta_E_1c_kkpi",   m_delta_E_1c);
+            status = m_nt10->addItem("upfit_kkpi",        m_upfit_kkpi);
+            status = m_nt10->addItem("chis1c_kkpi",       m_chis1c_kkpi);
+            status = m_nt10->addItem("p4_DsST_1c"    ,4 ,m_p4_DsST_1c);
+            status = m_nt10->addItem("p4_Ds_1c"      ,4 ,m_p4_Ds_1c);
+            status = m_nt10->addItem("p4_pion_1c"    ,4 ,m_p4_pion_1c);
+            status = m_nt10->addItem("p4_kaonp_1c"   ,4 ,m_p4_kaonp_1c);
+            status = m_nt10->addItem("p4_kaonm_1c"   ,4 ,m_p4_kaonm_1c);
+            status = m_nt10->addItem("p4_gam_1c"     ,4 ,m_p4_gam_1c);
+            status = m_nt10->addItem("p4_miss_1c"    ,4 ,m_p4_miss_1c);
+
+            status = m_nt10->addItem("p4_DsST_kkpi",  4,  m_p4_DsST_kkpi);
+            status = m_nt10->addItem("p4_Ds_kkpi",   4,   m_p4_Ds_kkpi);
+            status = m_nt10->addItem("p4_pion_kkpi", 4,   m_p4_pion_kkpi);
+            status = m_nt10->addItem("p4_kaonm_kkpi", 4,  m_p4_kaonm_kkpi);
+            status = m_nt10->addItem("p4_kaonp_kkpi", 4,  m_p4_kaonp_kkpi);
+            status = m_nt10->addItem("p4_gam_kkpi",   4,  m_p4_gam_kkpi);
+
+            status = m_nt10->addItem("pass_flag_kkpi",    m_pass_flag_kkpi);
+            status = m_nt10->addItem("rec_flag_p_kkpi",   m_rec_flag_p_kkpi);
+            status = m_nt10->addItem("rec_flag_m_kkpi",   m_rec_flag_m_kkpi);
+            status = m_nt10->addItem("flag_ST_kkpi",      m_flag_ST_kkpi);
+            status = m_nt10->addItem("flag_mc_p_kkpi",    m_flag_mc_p_kkpi);
+            status = m_nt10->addItem("flag_mc_m_kkpi",    m_flag_mc_m_kkpi);
+
+            status = m_nt10->addItem("num_DsSTp_kkpi",            m_num_DsSTp_kkpi, 0,  25);
+            status = m_nt10->addIndexedItem("id_DsSTp_kkpi",      m_num_DsSTp_kkpi,     m_id_DsSTp_kkpi);
+            status = m_nt10->addIndexedItem("ptruth_DsSTp_kkpi",  m_num_DsSTp_kkpi, 4,  m_ptruth_DsSTp_kkpi);
+            
+            status = m_nt10->addItem("num_Dsp_kkpi",            m_num_Dsp_kkpi, 0,  25);
+            status = m_nt10->addIndexedItem("id_Dsp_kkpi",      m_num_Dsp_kkpi,     m_id_Dsp_kkpi);
+            status = m_nt10->addIndexedItem("ptruth_Dsp_kkpi",  m_num_Dsp_kkpi, 4,  m_ptruth_Dsp_kkpi);
+
+            status = m_nt10->addItem("num_DsSTm_kkpi",           m_num_DsSTm_kkpi, 0, 25);
+            status = m_nt10->addIndexedItem("id_DsSTm_kkpi",     m_num_DsSTm_kkpi,    m_id_DsSTm_kkpi);
+            status = m_nt10->addIndexedItem("ptruth_DsSTm_kkpi", m_num_DsSTm_kkpi, 4, m_ptruth_DsSTm_kkpi);
+
+            status = m_nt10->addItem("num_Dsm_kkpi",            m_num_Dsm_kkpi, 0,  25);
+            status = m_nt10->addIndexedItem("id_Dsm_kkpi",      m_num_Dsm_kkpi,     m_id_Dsm_kkpi);
+            status = m_nt10->addIndexedItem("ptruth_Dsm_kkpi",  m_num_Dsm_kkpi, 4,  m_ptruth_Dsm_kkpi);       
+        }
+        else{
+            log << MSG::ERROR << "  Cannot book N-tuple10: " << long(m_nt10) << endreq;
+            return StatusCode::FAILURE;
+        }
+    }
+
+    if(m_checktotal){
+        NTuplePtr nt20(ntupleSvc(), "FILE1/truth_info_og");
+        if(nt20) m_nt20 = nt20;
+        else{
+            m_nt20 = ntupleSvc()->book("FILE1/truth_info_og", CLID_ColumnWiseTuple, "Ds ST Study");
+        }
+        if(m_nt20){
+            status = m_nt20->addItem("total_og",   m_total_og);
+            status = m_nt20->addItem("flag_ST",   m_flag_ST_og);
+            status = m_nt20->addItem("flag_mc_p",   m_flag_mc_p_og);
+            status = m_nt20->addItem("flag_mc_m",   m_flag_mc_m_og);
+
+            status = m_nt20->addItem("num_DsST",           m_num_DsST_og, 0, 25);
+            status = m_nt20->addIndexedItem("id_DsST",     m_num_DsST_og,    m_id_DsST_og);
+            status = m_nt20->addIndexedItem("ptruth_DsST", m_num_DsST_og, 4, m_ptruth_DsST_og);
+
+            status = m_nt20->addItem("num_Dsp",            m_num_Dsp_og, 0,  25);
+            status = m_nt20->addIndexedItem("id_Dsp",      m_num_Dsp_og,     m_id_Dsp_og);
+            status = m_nt20->addIndexedItem("ptruth_Dsp",  m_num_Dsp_og, 4,  m_ptruth_Dsp_og);
+
+            status = m_nt20->addItem("num_Dsm",            m_num_Dsm_og, 0,  25);
+            status = m_nt20->addIndexedItem("id_Dsm",      m_num_Dsm_og,     m_id_Dsm_og);
+            status = m_nt20->addIndexedItem("ptruth_Dsm",  m_num_Dsm_og, 4,  m_ptruth_Dsm_og);
+        }
+        else{
+            log << MSG::ERROR << "  Cannot book N-tuple20: " << long(m_nt20) << endreq;
+            return StatusCode::FAILURE;
+        }   
+    }
+
+    log << MSG::INFO << "successfully return from initialize()" <<endmsg;
+    return StatusCode::SUCCESS;
+}
+//End of initialize
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+StatusCode Deltakkpi::execute(){
+    m_ntot = m_ntot + 1;
+    MsgStream log(msgSvc(), name());
+    log << MSG::INFO << "in execute()" << endreq;
+
+    SmartDataPtr<Event::EventHeader> eventHeader(eventSvc(),"/Event/EventHeader");
+    if (!eventHeader){
+        log << MSG::FATAL << "Could not find Event Header" << endreq;
+        return( StatusCode::FAILURE);
+    }
+
+    int runNo = eventHeader->runNumber();
+    int event = eventHeader->eventNumber();
+
+    ReadBeamInfFromDb m_readDb;
+    double readbeam = 2.*m_readDb.getbeamE(runNo, 4.180);
+    cout << "------------------------------------" << endl;
+    cout << "read from Db" << endl;
+    cout << "runNo = " << runNo << endl;
+    cout << "event = " << event << endl;
+    cout << "readbeam = " << readbeam << endl;
+
+    // ***** topology
+    IMcDecayModeSvc* i_svc;
+    StatusCode sc_DecayModeSvc = service("McDecayModeSvc", i_svc);
+    if(sc_DecayModeSvc.isFailure()){
+        log << MSG::FATAL << "Could not load McDecayModeSvc!" << endreq;
+        return sc_DecayModeSvc;
+    }
+    m_svc = dynamic_cast<McDecayModeSvc*>(i_svc);
+
+    // truth info
+    // *** initialize flag ***
+    int total = 0;
+    int flag_ST = -999999;
+    int flag_mc_p = -999999;
+    int flag_mc_m = -999999;
+    // *** initialize array ***
+    int num_DsST = 3;    double id_DsST[15];    double ptruth_DsST[15][4];
+    int num_Dsp = 0;     double id_Dsp[15];     double ptruth_Dsp[15][4];
+    int num_Dsm = 0;     double id_Dsm[15];     double ptruth_Dsm[15][4];
+    double ptruth_ST[4];
+
+    for(int rr = 0; rr < 15; rr++){
+        id_DsST[rr] = -999999;
+        id_Dsp[rr]  = id_Dsm[rr]  = -999999;
+        for(int cc = 0; cc < 4; cc++){
+            ptruth_DsST[rr][cc] = -999999;
+            ptruth_Dsp[rr][cc]  = ptruth_Dsm[rr][cc]  = -999999;
+        }
+    }
+
+    if(eventHeader->runNumber()<0){
+        SmartDataPtr<Event::McParticleCol> mcParticleCol(eventSvc(), "/Event/MC/McParticleCol");
+        if(!mcParticleCol){
+            std::cout << "Could not retrieve McParticelCol" << std::endl;// return StatusCode::FAILURE;
+        }
+        else{
+            Event::McParticleCol::iterator iter_mc = mcParticleCol->begin();
+
+            // *** select |Ds*+-| *** distinguish Ds*+ or Ds*- ***
+            for(; iter_mc != mcParticleCol->end(); iter_mc++){
+                //if((*iter_mc)->primaryParticle()) continue;
+                //if(!(*iter_mc)->decayFromGenerator()) continue;
+                int pdg = (*iter_mc)->particleProperty();
+                int motherpdg = ((*iter_mc)->mother()).particleProperty();
+                int mmotherpdg = (((*iter_mc)->mother()).mother()).particleProperty();
+                if(fabs(pdg) != 433) continue;
+                if(pdg == 433){
+                    flag_ST = 1;
+                       for(int ll=0; ll<4; ll++) {ptruth_ST[ll] = (*iter_mc)->initialFourMomentum()[ll];}
+                }
+                if(pdg == -433){
+                    flag_ST = -1;
+                }
+            }
+
+            // *** store daughterList from Ds+ or Ds- separately ***
+            for(iter_mc = mcParticleCol->begin(); iter_mc != mcParticleCol->end(); iter_mc++){
+                //if ((*iter_mc)->primaryParticle()) continue;
+                //if (!(*iter_mc)->decayFromGenerator()) continue;
+                int pdg = (*iter_mc)->particleProperty();
+                int motherpdg = ((*iter_mc)->mother()).particleProperty();
+                int mmotherpdg = (((*iter_mc)->mother()).mother()).particleProperty();
+
+                // * gam from Ds*+- *//
+                if(pdg == 22 && fabs(motherpdg) == 433){
+                    id_DsST[0] = (*iter_mc)->particleProperty();
+                    for(int ll = 0; ll < 4; ll++){
+                        ptruth_DsST[0][ll] = (*iter_mc)->initialFourMomentum()[ll];
+                    }
+                }
+
+                // * Ds+ & Ds+ -> *//
+                if(pdg == 431){//Ds+
+                    id_DsST[1] = (*iter_mc)->particleProperty();
+                    for(int ll = 0; ll < 4; ll++){
+                        ptruth_DsST[1][ll] = (*iter_mc)->initialFourMomentum()[ll];
+                    }
+                    const SmartRefVector<Event::McParticle>& gc = (*iter_mc)->daughterList();
+                    for(unsigned int ii = 0; ii < gc.size(); ii++) {
+                        if( gc[ii]->particleProperty() == -22) continue;
+                        id_Dsp[num_Dsp] = gc[ii]->particleProperty();
+                        for(int ll = 0; ll < 4; ll++){
+                            ptruth_Dsp[num_Dsp][ll] = gc[ii]->initialFourMomentum()[ll];
+                        }
+                        num_Dsp++;
+                    }
+                }
+
+                // * Ds- & Ds- -> *//
+                if(pdg == -431){//Ds-
+                    id_DsST[2] = (*iter_mc)->particleProperty();
+                    for(int ll = 0; ll < 4; ll++){
+                        ptruth_DsST[2][ll] = (*iter_mc)->initialFourMomentum()[ll];
+                    }
+                    const SmartRefVector<Event::McParticle>& gc = (*iter_mc)->daughterList();
+                    for(unsigned int ii = 0; ii < gc.size(); ii++) {
+                        if( gc[ii]->particleProperty() == -22) continue;
+                        id_Dsm[num_Dsm] = gc[ii]->particleProperty();
+                        for(int ll = 0; ll < 4; ll++){
+                            ptruth_Dsm[num_Dsm][ll] = gc[ii]->initialFourMomentum()[ll];
+                        }
+                        num_Dsm++;
+                    }
+                }
+            }//end for
+
+            // *** mark the flag for each process ***
+            // ** PLUS ** //
+            if(num_Dsp == 3 && id_Dsp[0] == -321 && id_Dsp[1] == 321 && id_Dsp[2] == 211){
+                flag_mc_p = 10;// Ds+ -> K- K+ pi+
+            }
+            // ** MINUS ** //
+            if(num_Dsm == 3 && id_Dsm[0] == 321 && id_Dsm[1] == -321 && id_Dsm[2] == -211){
+                flag_mc_m = -10;// Ds- -> K+ K- pi-
+            }
+        }//else begin
+    }//end of truth info
+
+    //check
+    if(flag_ST==1&&flag_mc_p==10){
+        cout << "Ds*+ Ds-" << endl;
+        cout << "E truth = " << ptruth_ST[3] + ptruth_DsST[2][3] << endl;
+    }
+
+    if(m_checktotal){
+        total = 1;
+        m_total_og = total;
+        // *** store process flag ***
+        m_flag_mc_p_og = flag_mc_p;
+        m_flag_mc_m_og = flag_mc_m;
+        m_flag_ST_og   = flag_ST;
+
+        // *** store truth info for orign(og) ***
+        // * DsST * //
+        m_num_DsST_og = num_DsST;
+        for(int aa = 0; aa < num_DsST; aa++) m_id_DsST_og[aa] = id_DsST[aa];
+        for(int aa = 0; aa < num_DsST; aa++){
+            for(int bb = 0; bb < 4; bb++)
+                m_ptruth_DsST_og[aa][bb] = ptruth_DsST[aa][bb];
+        }
+        // * Ds+- * //
+        m_num_Dsp_og = num_Dsp;
+        for(int aa = 0; aa < num_Dsp; aa++) m_id_Dsp_og[aa] = id_Dsp[aa];
+        for(int aa = 0; aa < num_Dsp; aa++){
+            for(int bb = 0; bb < 4; bb++)
+                m_ptruth_Dsp_og[aa][bb] = ptruth_Dsp[aa][bb];
+        }
+        m_num_Dsm_og = num_Dsm;
+        for(int aa = 0; aa < num_Dsm; aa++) m_id_Dsm_og[aa] = id_Dsm[aa];
+        for(int aa = 0; aa < num_Dsm; aa++){
+            for(int bb = 0; bb < 4; bb++)
+                m_ptruth_Dsm_og[aa][bb] = ptruth_Dsm[aa][bb];
+        }
+        m_nt20->write();
+    }
+
+
+    // >>>>>>>>>>>>>>>>>>>>  Selection and Reconstruction begin from here <<<<<<<<<<<<<<<<<<<<<<
+    SmartDataPtr<EvtRecEvent> evtRecEvent(eventSvc(), EventModel::EvtRec::EvtRecEvent);
+    SmartDataPtr<EvtRecTrackCol> evtRecTrackCol( eventSvc(), EventModel::EvtRec::EvtRecTrackCol);
+
+    Hep3Vector xorigin(0,0,0);
+    IVertexDbSvc* vtxsvc;
+    Gaudi::svcLocator()->service("VertexDbSvc", vtxsvc);
+    if(vtxsvc->isVertexValid()){
+        double* dbv = vtxsvc->PrimaryVertex(); 
+        double*  vv = vtxsvc->SigmaPrimaryVertex();  
+        xorigin.setX(dbv[0]);
+        xorigin.setY(dbv[1]);
+        xorigin.setZ(dbv[2]);
+    }
+
+    // *** select good Charged pi+- K+- *** //
+    Vint iGood_loose; iGood_loose.clear();
+    Vint ipionp_loose, ipionm_loose; ipionp_loose.clear(); ipionm_loose.clear();
+
+    Vint iGood; iGood.clear();
+    Vint iTrkm, iTrkp; iTrkm.clear(); iTrkp.clear();
+
+    Vint ipion_all, charg_pion; ipion_all.clear(); charg_pion.clear();
+    Vint ikaon_all, charg_kaon; ikaon_all.clear(); charg_kaon.clear();
+    Vp4  p4pion_all; p4pion_all.clear();
+    Vp4  p4kaon_all; p4kaon_all.clear();   
+
+    Vint ipionm, ipionp; ipionm.clear(); ipionp.clear();
+    Vint ikaonm, ikaonp; ikaonm.clear(); ikaonp.clear();
+    Vp4  p4pionm, p4pionp; p4pionm.clear(); p4pionp.clear();
+    Vp4  p4kaonm, p4kaonp; p4kaonm.clear(); p4kaonp.clear();
+
+    int nCharge = 0;
+    for(int i = 0; i < evtRecEvent->totalCharged(); i++){
+        EvtRecTrackIterator itTrk = evtRecTrackCol->begin() + i;
+        //if(!(*itTrk)->isMdcTrackValid()) continue;
+        RecMdcTrack *mdcTrk = (*itTrk)->mdcTrack();
+        RecMdcKalTrack* mdcKalTrk = (*itTrk)->mdcKalTrack();
+
+        if(!isGoodTrackForKsLambda(*itTrk)) continue;
+        iGood_loose.push_back(i);
+        if(mdcTrk->charge()==1) {
+            ipionp_loose.push_back(i);
+        }
+        if(mdcTrk->charge()==-1){
+            ipionm_loose.push_back(i);
+        }       
+
+        if(!isGoodTrack(*itTrk)) continue;
+        iGood.push_back(i);
+
+        preparePID(*itTrk);
+
+        if(m_HavePion&&ispion()){
+            ipion_all.push_back(i);
+            charg_pion.push_back(mdcTrk->charge());
+            mdcKalTrk->setPidType(RecMdcKalTrack::pion);
+            p4pion_all.push_back(mdcKalTrk->p4(xmass[2]));
+        }
+        if(m_HaveKaon&&iskaon()){
+            ikaon_all.push_back(i);
+            charg_kaon.push_back(mdcTrk->charge());
+            mdcKalTrk->setPidType(RecMdcKalTrack::kaon);
+            p4kaon_all.push_back(mdcKalTrk->p4(xmass[3]));
+        }
+
+        if(mdcTrk->charge()==1){
+            iTrkp.push_back(i);
+            if(m_HavePion&&ispion()){
+                ipionp.push_back(i);
+                mdcKalTrk->setPidType(RecMdcKalTrack::pion);
+                p4pionp.push_back(mdcKalTrk->p4(xmass[2]));
+            }
+            if(m_HaveKaon&&iskaon()){
+                ikaonp.push_back(i);
+                mdcKalTrk->setPidType(RecMdcKalTrack::kaon);
+                p4kaonp.push_back(mdcKalTrk->p4(xmass[3]));
+            }
+        }
+        if(mdcTrk->charge()==-1){
+            iTrkm.push_back(i);
+            if(m_HavePion&&ispion()){
+                ipionm.push_back(i);
+                mdcKalTrk->setPidType(RecMdcKalTrack::pion);
+                p4pionm.push_back(mdcKalTrk->p4(xmass[2]));
+            }
+            if(m_HaveKaon&&iskaon()) {
+                ikaonm.push_back(i);
+                mdcKalTrk->setPidType(RecMdcKalTrack::kaon);
+                p4kaonm.push_back(mdcKalTrk->p4(xmass[3]));
+            }
+        }
+        nCharge += mdcTrk->charge();
+    }
+
+    // Finish Good Charged Track Selection
+    int nGood_loose = iGood_loose.size();
+    int nGood  = iGood.size();
+    int nkaon  = ikaon_all.size();
+    int npion  = ipion_all.size();
+
+    int nTrkp  = iTrkp.size();
+    int npionp = ipionp.size();
+    int nkaonp = ikaonp.size();
+
+    int nTrkm  = iTrkm.size();
+    int npionm = ipionm.size();
+    int nkaonm = ikaonm.size();
+
+    // *** select good shower *** //  
+    Vint iGam; iGam.clear();
+    Vp4 p4Gam; p4Gam.clear();
+    for(int i = evtRecEvent->totalCharged(); i < evtRecEvent->totalTracks(); i++){
+        EvtRecTrackIterator itTrk = evtRecTrackCol->begin() + i;
+        if(!isGoodShower(*itTrk)) continue;
+        iGam.push_back(i);
+        RecEmcShower* emcTrk = (*itTrk)->emcShower();
+        p4Gam.push_back(getP4(emcTrk,xorigin));
+    }
+    int nGam = iGam.size();
+    if(nGam<1) return StatusCode::SUCCESS;
+
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    double ECMS = 4.1800;
+    if(runNo <= 0) ECMS = 4.1800;
+    if(runNo >=43716 && runNo<= 47185) ECMS = 4.178;
+
+    //check beam Energy
+    //ReadBeamInfFromDb m_readDb;
+    //double readbeam = 2.*m_readDb.getbeamE(runNo, ECMS);
+    //cout << "------------------------------------" << endl;
+    //cout << "runNo = " << runNo << endl;
+    //cout << "event = " << event << endl;
+    //cout << "readbeam = " << readbeam << endl;  
+
+    m_beta.setX(0.0110004);
+    m_beta.setY(0);
+    m_beta.setZ(0);
+
+    // *** for kkpi *** //
+    if(decay_kkpi){
+        int pass_flag_kkpi = 0;
+        if(nkaonm==0||nkaonp==0||npion==0) return StatusCode::SUCCESS;
+        // *** make Ds ***
+        int index_k1_kkpi(0);
+        int index_k2_kkpi(0);
+        int index_j_kkpi(0);
+        int index_i_kkpi(0);
+        double delta_E_temp = -999999.;
+        double mDs_kkpi     = -999999.;
+        double mDsgam_kkpi  = -999999.;
+        double mrec_Ds_kkpi = -999999.; 
+        double eDs_kkpi     = -999999.;
+        double temp_mDs     = -999999.;
+        HepLorentzVector P_Ds_Lab, P_DsST_Lab, P_Gam_CMS;
+        HepLorentzVector p4Ds_kkpi, p4DsST_kkpi;
+        for(int k1 = 0; k1 < nkaonm; k1++){
+            for(int k2 = 0; k2 < nkaonp; k2++){
+                for(int j = 0; j < npion; j++){
+                    for(int i = 0; i < nGam; i++){
+                        if(ipion_all[j] == ikaonm[k1] || ipion_all[j] == ikaonp[k2]) continue;
+                        if(ikaonm[k1] == ikaonp[k2]) continue;
+                        HepLorentzVector p4Ds   = p4kaonm[k1] + p4kaonp[k2] + p4pion_all[j];
+                        HepLorentzVector p4DsST = p4Ds + p4Gam[i];
+                        P_Ds_Lab   = p4Ds;
+                        P_DsST_Lab = p4DsST;
+                        P_Gam_CMS  = p4Gam[i];
+                        P_Gam_CMS.boost(-m_beta);//change beam
+                        p4Ds.boost(-m_beta);
+                        p4DsST.boost(-m_beta);
+                        double rec_eDsgam = sqrt(p4DsST.rho()*p4DsST.rho() + 1.9683*1.9683);
+                        double eDs        = p4Ds.e();
+                        double eGam       = P_Gam_CMS.e();
+                        double delta_E    = ECMS - (eDs + eGam + rec_eDsgam);
+                        double emiss = ECMS - sqrt(p4Ds.rho()*p4Ds.rho() + 1.9683*1.9683);
+                        double mrec_Ds = sqrt(emiss*emiss - p4Ds.rho()*p4Ds.rho());
+                        temp_mDs = p4Ds.m();
+                        if(temp_mDs < 1.5 || temp_mDs > 2.3)  continue;
+                        if(fabs(delta_E) < fabs(delta_E_temp)){
+                            pass_flag_kkpi++;
+                            delta_E_temp  = delta_E;
+                            mDs_kkpi      = p4Ds.m();
+                            mDsgam_kkpi   = p4DsST.m();
+                            mrec_Ds_kkpi  = mrec_Ds;
+                            eDs_kkpi      = eDs;
+                            p4Ds_kkpi     = P_Ds_Lab;
+                            p4DsST_kkpi   = P_DsST_Lab;
+                            index_i_kkpi  = i;//gam
+                            index_j_kkpi  = j;//pion
+                            index_k1_kkpi = k1;//kaonm
+                            index_k2_kkpi = k2;//kaonp
+                        }
+                    }
+                }
+            }
+        }
+        if(pass_flag_kkpi > 0){
+            HepLorentzVector p4_DsST = P_DsST_Lab;
+            HepLorentzVector p4_DsST_1c(0,0,0,0), p4_Ds_1c(0,0,0,0);
+            HepLorentzVector p4_pion_1c(0,0,0,0), p4_kaonp_1c(0,0,0,0), p4_kaonm_1c(0,0,0,0), p4_gam_1c(0,0,0,0), p4_miss_1c(0,0,0,0);
+            HepLorentzVector p4_Lab(0.0110004*ECMS,0,0,ECMS);
+            bool upfit;
+            double DsST_chis;
+            int numkaonp = ikaonp[index_k2_kkpi];
+            int numkaonm = ikaonm[index_k1_kkpi];
+            int numpion  = ipion_all[index_j_kkpi];
+            int numgam   = iGam[index_i_kkpi];
+            updata1c(numkaonp, numkaonm, numpion, numgam, upfit, DsST_chis, p4_Lab, p4_DsST_1c, p4_Ds_1c, p4_pion_1c, p4_kaonp_1c, p4_kaonm_1c, p4_gam_1c, p4_miss_1c);
+            for(int ll = 0; ll < 4; ll++){
+                m_p4_DsST_1c[ll]  = p4_DsST_1c[ll];
+                m_p4_Ds_1c[ll]    = p4_Ds_1c[ll];
+                m_p4_pion_1c[ll]  = p4_pion_1c[ll];
+                m_p4_kaonp_1c[ll] = p4_kaonp_1c[ll];
+                m_p4_kaonm_1c[ll] = p4_kaonm_1c[ll];
+                m_p4_gam_1c[ll]   = p4_gam_1c[ll];
+                m_p4_miss_1c[ll]  = p4_miss_1c[ll];
+            }
+            HepLorentzVector p4_Ds_temp = p4_Ds_1c;
+            p4_Ds_temp.boost(-m_beta);
+            double emiss_Ds = ECMS - sqrt(p4_Ds_temp.rho()*p4_Ds_temp.rho() + 1.9683*1.9683);
+            double mrec_Ds_1c = sqrt(emiss_Ds*emiss_Ds - p4_Ds_temp.rho()*p4_Ds_temp.rho());
+            
+            HepLorentzVector p4_DsST_temp = p4_DsST_1c;
+            p4_DsST_temp.boost(-m_beta);
+            double emiss_DsST = ECMS - p4_DsST_temp.e();
+            double recDsgam = sqrt(emiss_DsST*emiss_DsST - p4_DsST_temp.rho()*p4_DsST_temp.rho());
+
+            HepLorentzVector p4_Gam_temp = p4_gam_1c;
+            p4_Gam_temp.boost(-m_beta);
+            double rec_eDsgam_1c = sqrt(p4_DsST_temp.rho()*p4_DsST_temp.rho() + 1.9683*1.9683);
+            double eDs_1c = p4_Ds_temp.e();
+            double eGam_1c = p4_Gam_temp.e();
+            double delta_E_1c = ECMS - (eDs_1c + eGam_1c + rec_eDsgam_1c);
+
+            m_mDs_1c        = p4_Ds_1c.m();
+            m_mDsgam_1c     = p4_DsST_1c.m();
+            m_mrec_Ds_1c    = mrec_Ds_1c;
+            m_mrec_Dsgam_1c = recDsgam;
+            m_upfit_kkpi    = upfit;
+            m_chis1c_kkpi   = DsST_chis;
+            m_delta_E_1c    = delta_E_1c;
+
+            m_runNo_kkpi     = runNo;
+            m_event_kkpi     = event;
+            m_ngam_kkpi      = nGam;
+            m_nchg_kkpi      = nGood;
+            m_charge_kkpi    = nCharge;
+            m_chargpion_kkpi = charg_pion[index_j_kkpi];
+
+            m_mDs_kkpi     = mDs_kkpi;
+            m_mDsgam_kkpi  = mDsgam_kkpi;
+            m_mrec_Ds_kkpi = mrec_Ds_kkpi;
+            m_eDs_kkpi     = eDs_kkpi;
+            m_delta_E_kkpi = delta_E_temp;
+
+            for(int ll = 0; ll < 4; ll++){
+                m_p4_DsST_kkpi[ll]  = p4DsST_kkpi[ll];
+                m_p4_Ds_kkpi[ll]    = p4Ds_kkpi[ll];
+                m_p4_pion_kkpi[ll]  = p4pion_all[index_j_kkpi][ll];
+                m_p4_kaonm_kkpi[ll] = p4kaonm[index_k1_kkpi][ll];
+                m_p4_kaonp_kkpi[ll] = p4kaonp[index_k2_kkpi][ll];
+                m_p4_gam_kkpi[ll]   = p4Gam[index_i_kkpi][ll];
+            }
+
+            int rec_flag_p_kkpi = -999999;
+            int rec_flag_m_kkpi = -999999;
+            if(num_Dsp == 3 && id_Dsp[0] == -321 && id_Dsp[1] == 321 && id_Dsp[2] == 211){
+                rec_flag_p_kkpi = 10;
+                m_num_DsSTp_kkpi = 3;
+                for(int aa = 0; aa < 3; aa++) m_id_DsSTp_kkpi[aa] = id_DsST[aa];
+                for(int aa = 0; aa < 3; aa++){
+                    for(int bb = 0; bb < 4; bb++)
+                        m_ptruth_DsSTp_kkpi[aa][bb] = ptruth_DsST[aa][bb];
+                }
+                m_num_Dsp_kkpi = num_Dsp;
+                for(int aa = 0; aa < num_Dsp; aa++) m_id_Dsp_kkpi[aa] = id_Dsp[aa];
+                for(int aa = 0; aa < num_Dsp; aa++){
+                    for(int bb = 0; bb < 4; bb++)
+                        m_ptruth_Dsp_kkpi[aa][bb] = ptruth_Dsp[aa][bb];
+                }
+            }
+            else if(num_Dsm == 3 && id_Dsp[0] == 321 && id_Dsp[1] == -321 && id_Dsp[2] == -211){
+                rec_flag_m_kkpi = -10;
+                m_num_DsSTm_kkpi = num_DsST;
+                for(int aa = 0; aa < num_DsST; aa++) m_id_DsSTm_kkpi[aa] = id_DsST[aa];
+                for(int aa = 0; aa < num_DsST; aa++){
+                    for(int bb = 0; bb < 4; bb++)
+                        m_ptruth_DsSTm_kkpi[aa][bb] = ptruth_DsST[aa][bb];
+                }
+                m_num_Dsm_kkpi = num_Dsm;
+                for(int aa = 0; aa < num_Dsm; aa++) m_id_Dsm_kkpi[aa] = id_Dsm[aa];
+                for(int aa = 0; aa < num_Dsm; aa++){
+                    for(int bb = 0; bb < 4; bb++)
+                        m_ptruth_Dsm_kkpi[aa][bb] = ptruth_Dsm[aa][bb];
+                }
+            }
+            else{
+                rec_flag_p_kkpi = 0;
+                rec_flag_m_kkpi = 0;
+            }
+
+            m_flag_ST_kkpi = flag_ST;
+            m_flag_mc_p_kkpi = flag_mc_p;
+            m_flag_mc_m_kkpi = flag_mc_m;
+            m_rec_flag_p_kkpi = rec_flag_p_kkpi;
+            m_rec_flag_m_kkpi = rec_flag_m_kkpi;
+            m_pass_flag_kkpi = pass_flag_kkpi;
+            m_nt10->write();
+        }
+    }//end decay_kkpi
+
+    return StatusCode::SUCCESS;
+}
+
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+StatusCode Deltakkpi::finalize() {
+    //std::cout<<" m_ntot = " <<"   "<<  m_ntot << std::endl;
+    //std::cout<<" COUNT = " <<"   "<< t_count << std::endl;
+    //std::cout<<" count_gam = " <<"   "<< t_gam << std::endl;
+    //std::cout<<" count_Dsp = " <<"   "<< t_Dsp  << std::endl;
+    //std::cout<<" count_Dsm = " <<"   "<< t_Dsm << std::endl;
+    MsgStream log(msgSvc(), name());
+    log << MSG::INFO << "in finalize()" << endreq;
+    return StatusCode::SUCCESS;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * Sub Program * * * * * * * * * * * * * * * * * * * //
+HepLorentzVector Deltakkpi::getP4(RecEmcShower* gTrk, Hep3Vector origin){
+    Hep3Vector Gm_Vec(gTrk->x(), gTrk->y(), gTrk->z());
+    Hep3Vector Gm_Mom = Gm_Vec - origin;
+    Gm_Mom.setMag(gTrk->energy());
+    HepLorentzVector pGm(Gm_Mom, gTrk->energy());
+    return pGm;
+}
+
+bool Deltakkpi::isGoodTrackForKsLambda(EvtRecTrack* trk){
+    double m_CosThetaCut = 0.93;
+    if( !trk->isMdcKalTrackValid()) {
+        return false;
+    }
+
+    Hep3Vector xorigin(0,0,0);
+    IVertexDbSvc*  vtxsvc;
+    Gaudi::svcLocator()->service("VertexDbSvc", vtxsvc);
+    if(vtxsvc->isVertexValid()){
+        double* dbv = vtxsvc->PrimaryVertex();
+        double*  vv = vtxsvc->SigmaPrimaryVertex();
+        xorigin.setX(dbv[0]);
+        xorigin.setY(dbv[1]);
+        xorigin.setZ(dbv[2]);
+    }
+
+    RecMdcTrack *mdcTrk = trk->mdcTrack();
+
+    HepVector a = mdcTrk->helix();
+    HepSymMatrix Ea = mdcTrk->err();
+
+    HepPoint3D point0(0.,0.,0.); // the initial point for MDC recosntruction
+    HepPoint3D IP(xorigin[0],xorigin[1],xorigin[2]);
+    VFHelix helixip(point0,a,Ea);
+    helixip.pivot(IP);
+    HepVector vecipa = helixip.a();
+    double  Rvxy0=fabs(vecipa[0]);  //the nearest distance to IP in xy plane
+    double  Rvz0=vecipa[3];         //the nearest distance to IP in z direction
+    double costheta=cos(mdcTrk->theta());
+
+    if(fabs(Rvz0) < 20 && fabs(costheta)<m_CosThetaCut)  return true;
+
+    return false;
+}
+
+bool Deltakkpi::isGoodTrack(EvtRecTrack* trk){
+    double m_vz0cut = 10.0;
+    double m_vr0cut = 1.0;
+    double m_CosThetaCut = 0.93;
+
+    if(!trk->isMdcKalTrackValid()){
+        return false;
+    }
+    Hep3Vector xorigin(0,0,0);
+    IVertexDbSvc*  vtxsvc;
+    Gaudi::svcLocator()->service("VertexDbSvc", vtxsvc);
+    if(vtxsvc->isVertexValid()){
+        double* dbv = vtxsvc->PrimaryVertex();
+        double* vv = vtxsvc->SigmaPrimaryVertex();
+        xorigin.setX(dbv[0]);
+        xorigin.setY(dbv[1]);
+        xorigin.setZ(dbv[2]);
+    }
+    RecMdcTrack *mdcTrk = trk->mdcTrack();
+    HepVector a = mdcTrk->helix();
+    HepSymMatrix Ea = mdcTrk->err();
+    HepPoint3D point0(0.,0.,0.); // the initial point for MDC recosntruction
+    HepPoint3D IP(xorigin[0],xorigin[1],xorigin[2]);
+    VFHelix helixip(point0,a,Ea);
+    helixip.pivot(IP);
+    HepVector vecipa = helixip.a();
+    double Rvxy0=fabs(vecipa[0]);  //the nearest distance to IP in xy plane
+    double Rvz0=vecipa[3];         //the nearest distance to IP in z direction
+    double costheta=cos(mdcTrk->theta());
+    if(fabs(Rvz0) < m_vz0cut && fabs(Rvxy0)< m_vr0cut && fabs(costheta)<m_CosThetaCut) return true;
+    return false;
+}
+
+void Deltakkpi::preparePID(EvtRecTrack* track){
+    ////PID for proton
+    //ParticleID *pid = ParticleID::instance();
+    //pid->init();
+    //pid->setMethod(pid->methodProbability());
+    //pid->setChiMinCut(8);
+    //pid->setRecTrack(track);
+    //pid->usePidSys(pid->useDedx() | pid->useTof1() | pid->useTof2() | pid->useTof()); // use PID sub-system
+    ////pid->identify(pid->onlyPion() | pid->onlyKaon());
+    //pid->identify(pid->onlyPion() | pid->onlyKaon() | pid->onlyProton());//change
+    //pid->calculate();
+    //m_prob[0]=pid->probElectron();
+    //m_prob[1]=pid->probMuon();
+    //m_prob[2]=pid->probPion();
+    //m_prob[3]=pid->probKaon();
+    //m_prob[4]=pid->probProton();
+    //if(!(pid->IsPidInfoValid())){
+    //    for(int i=0; i<5; i++) m_prob[i]=-99;
+    //}
+
+    //PID for kaon and pion
+    ParticleID *PID = ParticleID::instance();
+    PID->init();
+    PID->setMethod(PID->methodProbability());
+    PID->setChiMinCut(4);
+    PID->setRecTrack(track);
+    PID->usePidSys(PID->useDedx() | PID->useTof1() | PID->useTof2() | PID->useTof()); // use PID sub-system
+    PID->identify(PID->onlyPion() | PID->onlyKaon());
+    //PID->identify(PID->onlyPion() | PID->onlyKaon() | PID->onlyProton());
+    PID->calculate();
+    mm_prob[0]=PID->probElectron();
+    mm_prob[1]=PID->probMuon();
+    mm_prob[2]=PID->probPion();
+    mm_prob[3]=PID->probKaon();
+    mm_prob[4]=PID->probProton();
+    if(!(PID->IsPidInfoValid())){
+        for(int i=0; i<5; i++) mm_prob[i]=-99;
+    }
+
+    ////PID for electron
+    //ParticleID *Epid = ParticleID::instance();
+    //Epid->init();
+    //Epid->setMethod(Epid->methodProbability());
+    //Epid->setChiMinCut(4);
+    //Epid->setRecTrack(track);
+    //Epid->usePidSys(Epid->useDedx() | Epid->useTof1() | Epid->useTof2() | Epid->useTof() | Epid->useEmc()); // use PID sub-system
+    //Epid->identify(Epid->onlyElectron() | Epid->onlyPion() | Epid->onlyKaon());
+    //Epid->calculate();
+    //mmm_prob[0]=Epid->probElectron();
+    //mmm_prob[1]=Epid->probMuon();
+    //mmm_prob[2]=Epid->probPion();
+    //mmm_prob[3]=Epid->probKaon();
+    //mmm_prob[4]=Epid->probProton();
+    //if(!(Epid->IsPidInfoValid())){
+    //    for(int i=0; i<5; i++) mmm_prob[i]=-99;
+    //}
+
+    //RecMdcTrack *mdcTrk = track->mdcTrack();
+    //m_eop=-1;
+    //if(track->isEmcShowerValid()){
+    //    RecEmcShower *emcTrk = track->emcShower();
+    //    m_eop = (emcTrk->energy())/(mdcTrk->p());
+    //}
+}//end for preparePID
+
+bool Deltakkpi::iselectron(){
+    if(mmm_prob[0]>0.001 && (mmm_prob[0]/(mmm_prob[0]+mmm_prob[2]+mmm_prob[3]))>0.8){ return true; }
+    return false;
+}
+
+bool Deltakkpi::iselectron_eop(){
+    if(m_eop>0.8) return true;
+    return false;
+}
+
+bool Deltakkpi::ispion(){
+    if(mm_prob[2]>=0.00 && mm_prob[2]>=mm_prob[3]) return true;
+    return false;
+}
+
+bool Deltakkpi::iskaon(){
+    if(mm_prob[3]>=0.00 && mm_prob[3]>=mm_prob[2]){ return true; }
+    return false;
+}
+
+bool Deltakkpi::isGoodShower(EvtRecTrack* trk){
+    double m_maxCosThetaBarrel = 0.80;
+    double m_minCosThetaEndcap = 0.86;
+    double m_maxCosThetaEndcap = 0.92;
+    double m_minBarrelEnergy = 0.025;
+    double m_minEndcapEnergy = 0.050;
+    double m_gammthCut = 10.0;
+
+    if(!trk->isEmcShowerValid()){
+        return false;
+    }
+    Hep3Vector xorigin(0,0,0);
+    IVertexDbSvc*  vtxsvc;
+    Gaudi::svcLocator()->service("VertexDbSvc", vtxsvc);
+    if(vtxsvc->isVertexValid()){
+        double* dbv = vtxsvc->PrimaryVertex();
+        double*  vv = vtxsvc->SigmaPrimaryVertex();
+        xorigin.setX(dbv[0]);
+        xorigin.setY(dbv[1]);
+        xorigin.setZ(dbv[2]);
+    }
+    SmartDataPtr<EvtRecEvent> evtRecEvent(eventSvc(), EventModel::EvtRec::EvtRecEvent);
+    SmartDataPtr<EvtRecTrackCol> evtRecTrackCol(eventSvc(), EventModel::EvtRec::EvtRecTrackCol);
+    RecEmcShower *emcTrk = trk->emcShower();
+    Hep3Vector emcpos(emcTrk->x(), emcTrk->y(), emcTrk->z());
+    HepLorentzVector shP4 = getP4(emcTrk,xorigin);
+    double cosThetaSh = shP4.vect().cosTheta();
+    double eraw = emcTrk->energy();
+    double getTime = emcTrk->time();
+    if(getTime>14||getTime<0) return false;
+    if(!((fabs(cosThetaSh)<m_maxCosThetaBarrel && eraw>m_minBarrelEnergy)||((fabs(cosThetaSh)>m_minCosThetaEndcap) && (fabs(cosThetaSh)<m_maxCosThetaEndcap) && (eraw>m_minEndcapEnergy))))  return false;
+    double dang = 200.; 
+    for(int j = 0; j < evtRecEvent->totalCharged(); j++){
+        EvtRecTrackIterator jtTrk = evtRecTrackCol->begin() + j; 
+        if(!(*jtTrk)->isExtTrackValid()) continue;
+        RecExtTrack *extTrk = (*jtTrk)->extTrack();
+        if(extTrk->emcVolumeNumber() == -1) continue;
+        Hep3Vector extpos = extTrk->emcPosition();
+        double angd = extpos.angle(emcpos);
+        if(angd < dang) dang = angd;
+    }
+    if(dang>=200) return false;
+    dang = dang * 180 / (CLHEP::pi);
+    if(fabs(dang) < m_gammthCut) return false;
+    return true;
+}
+
+void Deltakkpi::updata1c(int& numkaonp, int& numkaonm, int& numpion, int& numgam, bool& upfit, double& DsST_chis, HepLorentzVector& p4_Lab, HepLorentzVector& p4_DsST_1c, HepLorentzVector& p4_Ds_1c, HepLorentzVector& p4_pion_1c, HepLorentzVector& p4_kaonp_1c, HepLorentzVector& p4_kaonm_1c, HepLorentzVector& p4_gam_1c, HepLorentzVector& p4_miss_1c){
+
+    SmartDataPtr<EvtRecTrackCol> evtRecTrackCol( eventSvc(), EventModel::EvtRec::EvtRecTrackCol);
+    RecMdcKalTrack* kaonpTrk = (*(evtRecTrackCol->begin()+numkaonp))->mdcKalTrack();
+    RecMdcKalTrack::setPidType(RecMdcKalTrack::kaon);
+    WTrackParameter wvkaonpTrk;
+    wvkaonpTrk = WTrackParameter(mkaon, kaonpTrk->getZHelixK(), kaonpTrk->getZErrorK());
+    
+    RecMdcKalTrack* kaonmTrk = (*(evtRecTrackCol->begin()+numkaonm))->mdcKalTrack();
+    RecMdcKalTrack::setPidType(RecMdcKalTrack::kaon);
+    WTrackParameter wvkaonmTrk;
+    wvkaonmTrk = WTrackParameter(mkaon, kaonmTrk->getZHelixK(), kaonmTrk->getZErrorK());
+
+    RecMdcKalTrack* pionTrk = (*(evtRecTrackCol->begin()+numpion))->mdcKalTrack();
+    RecMdcKalTrack::setPidType(RecMdcKalTrack::pion);
+    WTrackParameter wvpionTrk;
+    wvpionTrk = WTrackParameter(mpion, pionTrk->getZHelix(), pionTrk->getZError());
+    
+    RecEmcShower* gam = (*(evtRecTrackCol->begin()+numgam))->emcShower();
+
+    //  K+pi0 > Ds + Gam == Rec 1c ==> Ds
+    double xmDs = 1.9683;
+    KalmanKinematicFit * kmfit = KalmanKinematicFit::instance();
+    kmfit->init();
+    kmfit->setIterNumber(10);
+    kmfit->AddTrack(0, wvkaonpTrk);
+    kmfit->AddTrack(1, wvkaonmTrk);
+    kmfit->AddTrack(2, wvpionTrk);
+    kmfit->AddTrack(3, 0.0, gam);
+    kmfit->AddMissTrack(4, xmDs);
+    kmfit->AddFourMomentum(0, p4_Lab);
+
+    upfit =kmfit->Fit();
+    //if(!olmdq) return false;
+
+    //kmfit->BuildVirtualParticle();
+    DsST_chis = kmfit->chisq();
+    //if(DsST_chis>2500) return false;
+
+    p4_DsST_1c    = kmfit->pfit(0)+kmfit->pfit(1)+kmfit->pfit(2)+kmfit->pfit(3);
+    p4_Ds_1c      = kmfit->pfit(0)+kmfit->pfit(1)+kmfit->pfit(2);
+    p4_kaonp_1c   = kmfit->pfit(0);
+    p4_kaonm_1c   = kmfit->pfit(1);
+    p4_pion_1c    = kmfit->pfit(2);
+    p4_gam_1c     = kmfit->pfit(3);
+    p4_miss_1c    = kmfit->pfit(4);
+
+    //return 0;
+
+}
+
+//******************************************************************

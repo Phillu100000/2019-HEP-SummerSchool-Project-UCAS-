@@ -1,0 +1,1 @@
+PartId2Name_cxx_dependencies =  ../src/PartId2Name.cxx   /ihepbatch/bes/zhangr/6.5.5/InstallArea/include/McDecayModeSvc/McDecayModeSvc/PartId2Name.h  $(bin)McDecayModeSvcLib_deps/PartId2Name_cxx.stamp

@@ -1,0 +1,9 @@
+package McDecayModeSvc
+author Zou Jiaheng <zoujh@ihep.ac.cn>
+
+use BesPolicy	    BesPolicy-01-*
+use GaudiInterface  GaudiInterface-01-* External
+use BesCLHEP        BesCLHEP-*          External
+use McTruth         McTruth-*           Event
+
+apply_pattern dual_use_library files=*.cxx components/*.cxx

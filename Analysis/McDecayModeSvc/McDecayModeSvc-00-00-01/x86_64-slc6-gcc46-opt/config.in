@@ -1,0 +1,8 @@
+document build_config config config_dir=../McDecayModeSvc
+make_fragment make_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/make_header
+make_fragment dependencies /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/dependencies
+make_fragment cleanup_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cleanup_header
+make_fragment build_config -header=build_config_header /data/lzuhep/sw/Boss/dist/7.0.3/BesCxxPolicy/BesCxxPolicy-00-01-01/cmt/fragments/build_config
+make_fragment build_config_header /data/lzuhep/sw/Boss/dist/7.0.3/BesCxxPolicy/BesCxxPolicy-00-01-01/cmt/fragments/build_config_header
+make_fragment document_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/document_header
+make_fragment dependency /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/dependency

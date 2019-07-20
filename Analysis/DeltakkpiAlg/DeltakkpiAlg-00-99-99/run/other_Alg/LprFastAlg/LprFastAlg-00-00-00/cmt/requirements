@@ -1,0 +1,51 @@
+package LprFastAlg
+
+use DstEvent	 DstEvent-*    Event
+use ReconEvent   ReconEvent-*  Event
+use ParticleID   ParticleID-*  Analysis	
+use VertexFit    VertexFit-*   Analysis	
+use LTagAlg      LTagAlg-*     Reconstruction
+use LTagTool     LTagTool-*    Analysis
+use McDecayModeSvc  McDecayModeSvc-*  Analysis
+use BesROOT      BesROOT-*     External
+
+use BesPolicy           BesPolicy-*
+use GaudiInterface      GaudiInterface-*        External
+use BesAIDA             BesAIDA-*               External
+use PartPropSvc         *
+use EventNavigator      EventNavigator-*        Event
+use EventModel          EventModel-*            Event
+use RawDataProviderSvc  RawDataProviderSvc-*    Event
+use MdcData             MdcData-*               Reconstruction/MdcPatRec
+use MdcGeom             MdcGeom-*               Reconstruction/MdcPatRec
+use MdcTrkRecon         MdcTrkRecon-*           Reconstruction/MdcPatRec
+use MdcGeomSvc          MdcGeomSvc-*            Mdc
+use MagneticField       MagneticField-*
+use TrigEvent           TrigEvent-*             Event
+use EvtRecEvent         EvtRecEvent-*           Event
+use MdcCalibFunSvc      MdcCalibFunSvc-*        Mdc
+use MdcNavigation       MdcNavigation-*         Mdc
+# Monte-Carlo info
+use McTruth McTruth-* Event
+
+use CERNLIB    CERNLIB-*    External
+
+# MDC info
+use MdcRecEvent         MdcRecEvent-*           Mdc
+use MdcRawEvent         MdcRawEvent-*           Mdc
+use EvTimeEvent         EvTimeEvent-*           Event
+use RawEvent            RawEvent-*              Event
+use DstEvent            DstEvent-*              Event
+
+#pid
+use SimplePIDSvc        SimplePIDSvc-*    Utilities
+use BestDTagSvc BestDTagSvc-*  Utilities
+#D match
+use DTagTruthMatchSvc DTagTruthMatchSvc-* Utilities
+# ROOT
+use RootHistCnv v*
+macro_append LambdacRecAlgtemp_shlib " -lLTagAlg "
+macro_append cppflags " -DMCTRACEDEBUG -lpythia6205"
+#use XBAF      XBAF-*
+apply_pattern component_library
+library LprFastAlg  *.cxx  components/*.cxx

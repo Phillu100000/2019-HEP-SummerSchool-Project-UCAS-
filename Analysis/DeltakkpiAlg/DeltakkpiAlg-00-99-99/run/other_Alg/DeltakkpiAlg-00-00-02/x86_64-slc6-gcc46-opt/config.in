@@ -1,0 +1,8 @@
+document build_config config config_dir=../DeltakkpiAlg
+make_fragment make_header /afs/ihep.ac.cn/bes3/offline/ExternalLib/SLC6/contrib/CMT/v1r25/mgr/fragments/make_header
+make_fragment dependencies /afs/ihep.ac.cn/bes3/offline/ExternalLib/SLC6/contrib/CMT/v1r25/mgr/fragments/dependencies
+make_fragment cleanup_header /afs/ihep.ac.cn/bes3/offline/ExternalLib/SLC6/contrib/CMT/v1r25/mgr/fragments/cleanup_header
+make_fragment build_config -header=build_config_header /afs/ihep.ac.cn/bes3/offline/Boss/7.0.3/BesCxxPolicy/BesCxxPolicy-00-01-01/cmt/fragments/build_config
+make_fragment build_config_header /afs/ihep.ac.cn/bes3/offline/Boss/7.0.3/BesCxxPolicy/BesCxxPolicy-00-01-01/cmt/fragments/build_config_header
+make_fragment document_header /afs/ihep.ac.cn/bes3/offline/ExternalLib/SLC6/contrib/CMT/v1r25/mgr/fragments/document_header
+make_fragment dependency /afs/ihep.ac.cn/bes3/offline/ExternalLib/SLC6/contrib/CMT/v1r25/mgr/fragments/dependency

@@ -1,0 +1,431 @@
+#include "McDecayModeSvc/DecayModes.h"
+
+class DecayModes::DecayMode {
+public:
+  DecayMode(DecayParticle* mode);
+  bool operator<(DecayMode& other) { return nEvts > other.nEvts; }
+
+  int            nEvts;
+  int            modeId;
+  DecayParticle* pMode;
+
+private:
+  static int nTot;
+};
+
+int DecayModes::DecayMode::nTot = 0;
+
+DecayModes::DecayMode::DecayMode(DecayParticle* mode)
+  : nEvts(1), modeId(nTot), pMode(mode)
+{
+  nTot++;
+}
+
+DecayModes::DecayModes()
+  : m_totEvts(0)
+{
+}
+
+DecayModes::~DecayModes()
+{
+  std::list<DecayMode>::iterator it = m_modes.begin();
+  for ( ; it != m_modes.end(); it++) delete it->pMode;
+}
+
+int DecayModes::addMode(DecayParticle* mode) {
+
+  if ( ((++m_totEvts) & 0x3FF) == 0) m_modes.sort();
+
+  std::list<DecayMode>::iterator it = m_modes.begin();
+  std::list<DecayMode>::iterator end = m_modes.end();
+
+  while ( it != end && (!mode->sameAs(it->pMode)) ) it++;
+
+  if (it != end) {
+    delete mode;
+    it->nEvts++;
+    return (it->modeId);
+  }
+  else {
+    DecayMode d_mode(mode);
+    m_modes.push_back(d_mode);
+    return d_mode.modeId;
+  }
+}
+
+void DecayModes::printToStream(std::ostream& os) {
+
+  m_modes.sort();
+  os << "************************************************************" << std::endl
+     << "Total " << m_totEvts << " events in " << m_modes.size() << " decay modes" << std::endl
+     << "************************************************************" << std::endl << std::endl;
+
+  std::list<DecayMode>::const_iterator it = m_modes.begin();
+
+  for (int i = 1; it != m_modes.end(); i++, it++ ) {
+    os << i << "\t@@     modeId - " << it->modeId << ",\t total events: " << it->nEvts << std::endl
+       << "------------------------------------------------------------" << std::endl;
+    it->pMode->printToStream(os);
+    os << "************************************************************" << std::endl << std::endl;
+  }
+}
+#include "McDecayModeSvc/PartId2Name.h"
+#include "McDecayModeSvc/DecayParticle.h"
+
+//int nnnnnn_instance = 0;
+
+DecayParticle::DecayParticle(int id)
+  : m_id(id)
+{
+  //std::cout << "new, left " << ++nnnnnn_instance << std::endl;
+}
+
+DecayParticle::~DecayParticle()
+{
+  if ( ! m_daughters.empty() ) {
+    std::list<DecayParticle*>::iterator it = m_daughters.begin();
+    for ( ; it != m_daughters.end(); it++) delete (*it);
+  }
+  //std::cout << "delete, left " << --nnnnnn_instance << std::endl;
+}
+
+DecayParticle* DecayParticle::addDaughter(int id) {
+
+  std::list<DecayParticle*>::iterator it = m_daughters.begin();
+  std::list<DecayParticle*>::iterator end = m_daughters.end();
+
+  while(it != end && (*it)->id() < id) it++;
+
+  DecayParticle* daughter = new DecayParticle(id);
+  m_daughters.insert(it, daughter);
+
+  return daughter;
+}
+
+bool DecayParticle::sameAs(DecayParticle* other) const {
+
+  if (this->m_id == other->m_id) {
+
+    if (this->m_daughters.size() == other->m_daughters.size()) {
+
+      std::list<DecayParticle*>::const_iterator iti = m_daughters.begin();
+      std::list<DecayParticle*>::const_iterator itj = other->m_daughters.begin();
+
+      for ( ; iti != m_daughters.end() ; iti++, itj++) {
+	if (! (*iti)->sameAs(*itj) ) return false; 
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void DecayParticle::printToStream(std::ostream& os, int depth) const {
+
+  PartId2Name& pName = *(PartId2Name::instance());
+
+  if (! m_daughters.empty() ) {
+
+    for (int i = 0; i < depth; i++) os << '\t';
+
+    os << pName(m_id) << " ->";
+
+    std::list<DecayParticle*>::const_iterator begin = m_daughters.begin();
+    std::list<DecayParticle*>::const_iterator end = m_daughters.end();
+    std::list<DecayParticle*>::const_iterator it;
+    for (it = begin; it != end; it++) os << ' ' << pName((*it)->id());
+
+    os << std::endl;
+
+    for (it = begin; it != end; it++) (*it)->printToStream(os, depth+1);
+  }
+}
+#include <algorithm>
+#include "GaudiKernel/MsgStream.h"
+#include "McTruth/McParticle.h"
+#include "McDecayModeSvc/McDecayModeSvc.h"
+#include "McDecayModeSvc/DecayModes.h"
+#include "McDecayModeSvc/PartId2Name.h"
+
+using Event::McParticle;
+
+McDecayModeSvc::McDecayModeSvc(const std::string& name, ISvcLocator* svcLoc)
+  : Service(name, svcLoc), m_decayModes(0)
+{
+  declareProperty("pdt_file", m_pdt);
+  declareProperty("NoTracingList", m_noTracing);
+}
+
+McDecayModeSvc::~McDecayModeSvc()
+{
+}
+
+StatusCode McDecayModeSvc::initialize()
+{
+  MsgStream log(messageService(), name());
+  log << MSG::INFO << "@initialize()" << endreq;
+
+  StatusCode sc = Service::initialize();
+
+  if (sc.isSuccess()) m_decayModes = new DecayModes();
+
+  PartId2Name::instance(m_pdt);
+
+  return sc;
+}
+
+StatusCode McDecayModeSvc::finalize()
+{
+  MsgStream log(messageService(), name());
+  log << MSG::INFO << "@finalize()" << endreq;
+
+  if (m_decayModes) delete m_decayModes;
+
+  //PartId2Name* id2name = PartId2Name::instance();
+  //if (id2name) delete id2name;
+  PartId2Name::release();
+
+  StatusCode sc = Service::finalize();
+  return sc;
+}
+
+StatusCode McDecayModeSvc::queryInterface(const InterfaceID& riid, void** ppvIF)
+{
+  if (IMcDecayModeSvc::interfaceID().versionMatch(riid)) {
+    *ppvIF = dynamic_cast<IMcDecayModeSvc*>(this);
+  }
+  else {
+    return Service::queryInterface(riid, ppvIF);
+  }
+  addRef();
+  return StatusCode::SUCCESS;
+}
+
+int McDecayModeSvc::extract(McParticle* prim)
+{
+  //MsgStream log(messageService(), name());
+
+  DecayParticle* d_prim = new DecayParticle(prim->particleProperty());
+  checkDecay(prim, d_prim);
+
+  return m_decayModes->addMode(d_prim);
+}
+
+void McDecayModeSvc::summary(std::ostream& os) const {
+  m_decayModes->printToStream(os);
+}
+
+void McDecayModeSvc::checkDecay(const McParticle* mother, DecayParticle* d_mother)
+{
+  if ( ! mother->leafParticle() ) {
+    int id_tmp = mother->particleProperty();
+    std::vector<int>::iterator it_tmp = find(m_noTracing.begin(), m_noTracing.end(), id_tmp);
+    if ( it_tmp == m_noTracing.end() ) {
+      const SmartRefVector<McParticle>& daughters = mother->daughterList();
+      SmartRefVector<McParticle>::const_iterator it = daughters.begin();
+      SmartRefVector<McParticle>::const_iterator end = daughters.end();
+
+      for ( ; it != end; it++) {
+	int d_id = (*it)->particleProperty();
+
+	DecayParticle* d_daughter = d_mother->addDaughter(d_id);
+
+	checkDecay(it->data(), d_daughter);
+      }
+    }
+  }
+}
+#include <unistd.h>
+#include <iostream>
+#include <fstream>
+#include "McDecayModeSvc/PartId2Name.h"
+
+PartId2Name* PartId2Name::s_instance = NULL;
+
+PartId2Name* PartId2Name::instance(const std::string& pdt_f) {
+
+  if ( s_instance == NULL && !pdt_f.empty() ) {
+    s_instance = new PartId2Name(pdt_f.c_str());
+  }
+
+  return s_instance;
+}
+
+void PartId2Name::release() {
+   if ( s_instance != NULL ) {
+      delete s_instance;
+      s_instance = NULL;
+   }
+}
+
+std::string PartId2Name::operator()(int id) const {
+
+  std::map<int, std::string>::const_iterator it = m_pdt.find(id);
+
+  if (it != m_pdt.end()) return it->second;
+
+  return "Unknown";
+}
+
+PartId2Name::PartId2Name(const char* pdt_f)
+{
+  if ( access(pdt_f, F_OK) < 0 ) {
+    std::cerr << "Can't find the particle-defination-table file: " << pdt_f << std::endl;
+    return;
+  }
+
+  std::string opt, p, type, name;
+  int id;
+
+  std::ifstream fs(pdt_f);
+
+  char buf[128];
+  while ( fs.good() && !fs.eof() ) {
+    fs >> opt;
+    if (opt == "add") {
+      fs >> p >> type >> name >> id;
+      m_pdt.insert(make_pair(id, name));
+    }
+    fs.getline(buf, 128);
+  }
+}
+#ifndef MC_DECAY_MODES_H
+#define MC_DECAY_MODES_H
+
+#include <list>
+#include <iostream>
+#include "McDecayModeSvc/DecayParticle.h"
+
+class DecayModes
+{
+public:
+  DecayModes();
+  virtual ~DecayModes();
+
+  int addMode(DecayParticle* mode);
+
+  void printToStream(std::ostream& os);
+
+private:
+  class DecayMode;
+
+  int                  m_totEvts;
+  std::list<DecayMode> m_modes;
+};
+
+#endif
+#ifndef DECAY_PARTICLE_H
+#define DECAY_PARTICLE_H
+
+#include <iostream>
+#include <list>
+
+class DecayParticle
+{
+public:
+  DecayParticle(int id);
+  virtual ~DecayParticle();
+
+  int id() const { return m_id; }
+
+  bool isLeaf() const { return m_daughters.empty(); }
+
+  DecayParticle* addDaughter(int id);
+
+  bool sameAs(DecayParticle* other) const;
+
+  void printToStream(std::ostream& os, int depth = 1) const;
+
+private:
+  int m_id;
+
+  std::list<DecayParticle*> m_daughters;
+};
+
+#endif
+#ifndef IMC_DECAY_MODE_SVC_H
+#define IMC_DECAY_MODE_SVC_H
+
+#include <iostream>
+#include "GaudiKernel/IService.h"
+
+/* Declaration of the interface ID */
+static const InterfaceID IID_IMcDecayModeSvc("IMcDecayModeSvc", 1, 0);
+
+namespace Event { class McParticle; }
+
+class IMcDecayModeSvc : virtual public IService
+{
+public:
+  virtual ~IMcDecayModeSvc() {}
+
+  static const InterfaceID& interfaceID() { return IID_IMcDecayModeSvc; }
+
+  virtual int  extract(Event::McParticle* prim) = 0;
+  virtual void summary(std::ostream& os = std::cout) const = 0;
+};
+
+#endif
+#ifndef MC_DECAY_MODE_SVC_H
+#define MC_DECAY_MODE_SVC_H
+
+#include "GaudiKernel/Service.h"
+#include "McDecayModeSvc/IMcDecayModeSvc.h"
+
+template <class TYPE> class CnvFactory;
+
+class DecayParticle;
+class DecayModes;
+
+class McDecayModeSvc : public Service, virtual public IMcDecayModeSvc
+{
+  friend class CnvFactory<McDecayModeSvc>;
+
+public:
+  McDecayModeSvc(const std::string& name, ISvcLocator* svcLoc);
+  virtual ~McDecayModeSvc();
+
+  virtual StatusCode initialize();
+  virtual StatusCode finalize();
+  virtual StatusCode queryInterface(const InterfaceID& riid, void** ppvIF);
+
+  int  extract(Event::McParticle* prim);
+  void summary(std::ostream& os = std::cout) const;
+
+private:
+  void checkDecay(const Event::McParticle* mother, DecayParticle* d_mother);
+
+  DecayModes*      m_decayModes;
+  std::string      m_pdt;
+  std::vector<int> m_noTracing;
+};
+
+#endif
+#ifndef PART_ID_TO_NAME_H
+#define PART_ID_TO_NAME_H
+
+#include <map>
+#include <string>
+
+class PartId2Name
+{
+public:
+  static PartId2Name* instance(const std::string& pdt_f = "");
+
+  static void release();
+
+  std::string operator()(int id) const;
+
+private:
+  PartId2Name(const char* pdt_f);
+  PartId2Name();
+
+private:
+  std::map<int, std::string> m_pdt;
+
+  static PartId2Name* s_instance;
+};
+
+#endif

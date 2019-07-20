@@ -1,0 +1,8 @@
+document cmt_action_runner CompilePython -group=cmt_actions action_value=python'"'" "'"'-m'"'" "'"'compileall'"'" "'"'/data2/kc2019/workfs/7.0.3/InstallArea/x86_64-slc6-gcc46-opt/python'"'" "'"'/data2/kc2019/workfs/7.0.3/InstallArea/x86_64-slc6-gcc46-opt/scripts
+make_fragment make_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/make_header
+make_fragment dependencies /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/dependencies
+make_fragment cleanup_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cleanup_header
+make_fragment cmt_action_runner -header=cmt_action_runner_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cmt_action_runner
+make_fragment cmt_action_runner_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/cmt_action_runner_header
+make_fragment document_header /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/document_header
+make_fragment dependency /data/lzuhep/sw/Boss/CMT/v1r25/mgr/fragments/dependency

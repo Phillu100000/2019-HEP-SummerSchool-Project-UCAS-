@@ -1,0 +1,56 @@
+   
+      /////////////////////////////////////////////////////////////////////////// 
+      const CDCandidate& aEtbz = (*it).particle().child(1);
+      /////////////////////////////////////////////////////////////////////////// 
+   
+      /////////////////////////////////////////////////////////////////////////// 
+      const CDCandidate& aEtb_1 = aEtbz.decay().child(0);
+      EvtRecTrack* aEtb1Trk = const_cast<EvtRecTrack*>(aEtb_1.track());
+      RecMdcKalTrack *eta_pipTrk = aEtb1Trk->mdcKalTrack();
+      RecMdcKalTrack::setPidType (RecMdcKalTrack::pion);
+      WTrackParameter eta_pip(mpi, eta_pipTrk->getZHelix(), eta_pipTrk->getZError() );
+      int ieta_pip = aEtb1Trk->trackId();
+      
+      const CDCandidate& aEtb_2 = aEtbz.decay().child(1);
+      EvtRecTrack* aEtb2Trk = const_cast<EvtRecTrack*>(aEtb_2.track());
+      RecMdcKalTrack *eta_pimTrk = aEtb2Trk->mdcKalTrack();
+      RecMdcKalTrack::setPidType (RecMdcKalTrack::pion);
+      WTrackParameter eta_pim(mpi, eta_pimTrk->getZHelix(), eta_pimTrk->getZError() );
+      int ieta_pim = aEtb2Trk->trackId();
+      
+      HepVector eta_kpp_val = HepVector(7,0); eta_kpp_val = eta_pip.w();
+      HepVector eta_kpm_val = HepVector(7,0); eta_kpm_val = eta_pim.w();
+      HepLorentzVector P_ETA_PIP(eta_kpp_val[0],eta_kpp_val[1],eta_kpp_val[2],eta_kpp_val[3]);
+      HepLorentzVector P_ETA_PIM(eta_kpm_val[0],eta_kpm_val[1],eta_kpm_val[2],eta_kpm_val[3]);
+
+      const CDCandidate& ETA_aPinz = aEtbz.decay().child(2);
+      HepLorentzVector P_ETA_2GA = ETA_aPinz.p4();
+      if(P_ETA_2GA.m()<0.10||P_ETA_2GA.m()>0.160) return false;
+
+      const CDCandidate& aGam_1_eta = ETA_aPinz.decay().child(0);
+      EvtRecTrack* aPhotTrk_eta = const_cast<EvtRecTrack*>(aGam_1_eta.photon());
+      RecEmcShower* g1Trk_eta = aPhotTrk_eta->emcShower();
+
+      const CDCandidate& aGam_2_eta = ETA_aPinz.decay().child(1);
+      EvtRecTrack* aPho2Trk_eta = const_cast<EvtRecTrack*>(aGam_2_eta.photon());
+      RecEmcShower* g2Trk_eta = aPho2Trk_eta->emcShower();
+
+      HepLorentzVector P_ETB = P_ETA_PIP+P_ETA_PIM+P_ETA_2GA;
+      double meta = P_ETB.m();
+      if(meta<0.48 || meta>0.62) return false;
+
+      KalmanKinematicFit * kmfit_eta = KalmanKinematicFit::instance();
+      kmfit_eta->init();
+      kmfit_eta->setEspread(0.0015);
+      kmfit_eta->setCollideangle();
+      kmfit_eta->AddTrack(0,  eta_pip);
+      kmfit_eta->AddTrack(1,  eta_pim);
+      kmfit_eta->AddTrack(2, 0.0, g1Trk_eta);
+      kmfit_eta->AddTrack(3, 0.0, g2Trk_eta);
+      kmfit_eta->AddResonance(0, 0.547853, 0, 1, 2, 3);
+      bool oksq_eta = kmfit_eta->Fit();
+      double chisq_eta = kmfit_eta->chisq();
+      /////////////////////////////////////////////////////////////////////////// 
+      P_ETB = kmfit_eta->pfit(0) + kmfit_eta->pfit(1) + kmfit_eta->pfit(2) + kmfit_eta->pfit(3);  
+      /////////////////////////////////////////////////////////////////////////// 
+
