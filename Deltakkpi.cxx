@@ -103,6 +103,7 @@ StatusCode Deltakkpi::initialize()
         if (m_nt10)
         {
             status = m_nt10->addItem("mDs_kkpi", m);
+
         }
         else
         {
@@ -339,25 +340,22 @@ StatusCode Deltakkpi::execute()
 
     // *** for kkpi *** //
     if (decay_kkpi)
-    {
-        int passFlagLambdacm = 0; //是否有有效的lambda-事例
-        if (!(nprotonm == 0 || nkaonp == 0 || npionm == 0))
-        {                   //要有反质子，K+与pi-存在，才进行基于其的重建
-            double delta_E; //lambdac-能量与平均能量只差，越小越好，而可选范围见文章
-            double mLcm = 0;
-            for (int npm = 0; npm < iprtonm; npm++)
-            {
-                for (int nkp = 0; nkp < ikaonp; nkp++)
-                {
-                    for (int npim = 0; npim < ipionm; npim++)
-                    {
-                        HepLorentzVector p4Lcm = p4prtonm[npm] + p4kaonp[nkp] + p4pionm[npim];
-                        mLcm = p4Lcm.m();
+    {   
+        int passFlagLambdacm=0;     //是否有有效的lambda-事例
+        if(!(nprotonm==0||nkaonp==0||npionm==0)){ //要有反质子，K+与pi-存在，才进行基于其的重建
+            double delta_E;//lambdac-能量与平均能量只差，越小越好，而可选范围见文章
+            double mLcm=0;
+            for (int npm=0;npm<iprtonm;npm++){
+                for (int nkp=0;nkp<ikaonp;nkp++){
+                    for (int npim=0;npim<ipionm;npim++){
+                        HepLorentzVector p4Lcm=p4prtonm[npm]+p4kaonp[nkp]+p4pionm[npim];
+                        mLcm=p4Lcm.m();
                     }
                 }
             }
+
         }
-        m_nt10->write();//不变质量谱！
+        m_nt10->write();
         // int pass_flag_kkpi = 0;
         // if (nkaonm == 0 || nkaonp == 0 || npionp == 0)
         //     return StatusCode::SUCCESS;

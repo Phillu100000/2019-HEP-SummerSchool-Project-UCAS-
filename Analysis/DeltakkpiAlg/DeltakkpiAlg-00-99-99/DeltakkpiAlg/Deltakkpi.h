@@ -31,6 +31,7 @@ class Deltakkpi : public Algorithm {
     bool iselectron_eop();
     bool ispion();
     bool iskaon();
+    bool isproton();
     bool isGoodks(RecMdcKalTrack* pipTrk, RecMdcKalTrack* pimTrk, double& ks_1chis, double& ks_2chis, double& ks_lchue, HepLorentzVector& p4_ks_1s, double& ks_mass, HepLorentzVector& p4pipks, HepLorentzVector& p4pimks);
     private:
     McDecayModeSvc* m_svc;
@@ -76,7 +77,8 @@ class Deltakkpi : public Algorithm {
     NTuple::Array<double>   m_p4_gam_kkpi;
      
     NTuple::Item<int>       m_pass_flag_kkpi;   
-    
+    NTuple::Item<double>       m;   
+
     NTuple::Tuple*  m_nt20;
     NTuple::Item<int>       m_total_og;
     NTuple::Item<int>       m_flag_ST_og;
