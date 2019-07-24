@@ -94,6 +94,22 @@ StatusCode Deltakkpi::initialize()
     if (decay_kkpi)
     {
         NTuplePtr nt10(ntupleSvc(), "FILE1/kkpi");
+        NTuplePtr ntb(ntupleSvc(), "FILE1/yan");
+        NTuplePtr nta(ntupleSvc(), "FILE1/yan");
+        if (ntb)
+            m_ntb = ntb;
+        else
+        {
+            m_ntb = ntupleSvc()->book("FILE1/kppi", CLID_ColumnWiseTuple, "DST Study");
+            m_ntb->addItem("mass", m_nchg_kkpi);
+        }
+        if (nta)
+            m_nta = nta;
+        else
+        {
+            m_nta = ntupleSvc()->book("FILE1/pk", CLID_ColumnWiseTuple, "DST Study");
+            m_nta->addItem("mass", m_mDsgam_kkpi);
+        }
         if (nt10)
             m_nt10 = nt10;
         else
@@ -102,8 +118,10 @@ StatusCode Deltakkpi::initialize()
         }
         if (m_nt10)
         {
-            status = m_nt10->addItem("mDs_kkpi", m);
-
+            status = m_nt10->addItem("mLc", m);
+            status = m_nt10->addItem("deltaE", mDeltaE);
+            status = m_nt10->addItem("ma", ma);
+            //status = m_nt10->addItem("ma", mb);
         }
         else
         {
@@ -163,43 +181,6 @@ StatusCode Deltakkpi::execute()
     }
     m_svc = dynamic_cast<McDecayModeSvc *>(i_svc);
 
-    //<<<<< MC Truth >>>>>
-    /*
-    // *** initialize flag ***
-    int total = 0;
-    int flag_ST = -999999;
-    if(eventHeader->runNumber()<0){
-        SmartDataPtr<Event::McParticleCol> mcParticleCol(eventSvc(), "/Event/MC/McParticleCol");
-        if(!mcParticleCol){
-            std::cout << "Could not retrieve McParticelCol" << std::endl;// return StatusCode::FAILURE;
-        }
-        else{
-            Event::McParticleCol::iterator iter_mc = mcParticleCol->begin();
-
-            // *** select |Ds*+-| *** distinguish Ds*+ or Ds*- ***
-            for(; iter_mc != mcParticleCol->end(); iter_mc++){
-                //if((*iter_mc)->primaryParticle()) continue;
-                //if(!(*iter_mc)->decayFromGenerator()) continue;
-                int pdg = (*iter_mc)->particleProperty();
-                int motherpdg = ((*iter_mc)->mother()).particleProperty();
-                int mmotherpdg = (((*iter_mc)->mother()).mother()).particleProperty();
-                if(fabs(pdg) != 433) continue;
-                if(pdg == 433){
-                    flag_ST = 1;
-                }
-                if(pdg == -433){
-                    flag_ST = -1;
-                }
-            }
-    }//end of truth info
-    if(m_checktotal){
-        total = 1;
-        m_total_og = total;
-        // *** store process flag ***
-        m_flag_ST_og   = flag_ST;
-    }
-    */
-
     // >>>>>>>>>>>>>>>>>>>>  Selection and Reconstruction begin from here <<<<<<<<<<<<<<<<<<<<<<
     SmartDataPtr<EvtRecEvent> evtRecEvent(eventSvc(), EventModel::EvtRec::EvtRecEvent);
     SmartDataPtr<EvtRecTrackCol> evtRecTrackCol(eventSvc(), EventModel::EvtRec::EvtRecTrackCol);
@@ -223,22 +204,24 @@ StatusCode Deltakkpi::execute()
     iTrkm.clear();
     iTrkp.clear();
 
-    Vint ipionm, ipionp, iprtonp;
+    Vint ipionm, ipionp, iprotonp;
     ipionm.clear();
     ipionp.clear();
-    iprtonp.clear();
-    Vint ikaonm, ikaonp, iprtonm;
+    iprotonp.clear();
+    Vint ikaonm, ikaonp, iprotonm;
     ikaonm.clear();
     ikaonp.clear();
-    iprtonm.clear();
-    Vp4 p4pionm, p4pionp, p4prtonp;
+    iprotonm.clear();
+    Vp4 p4pionm, p4pionp, p4protonp;
     p4pionm.clear();
     p4pionp.clear();
-    p4prtonp.clear();
-    Vp4 p4kaonm, p4kaonp, p4prtonm;
+    p4protonp.clear();
+    Vp4 p4kaonm, p4kaonp, p4protonm;
     p4kaonm.clear();
     p4kaonp.clear();
-    p4prtonm.clear();
+    p4protonm.clear();
+
+    int iep = 0, iem = 0;
 
     int nCharge = 0;
     for (int i = 0; i < evtRecEvent->totalCharged(); i++)
@@ -247,58 +230,88 @@ StatusCode Deltakkpi::execute()
         RecMdcTrack *mdcTrk = (*itTrk)->mdcTrack();
         RecMdcKalTrack *mdcKalTrk = (*itTrk)->mdcKalTrack();
 
-        //judgement of the charged-Track
-        if (!isGoodTrack(*itTrk))
-            continue;
-        iGood.push_back(i);
-
-        //Particle IDentify for each charged-Track
         preparePID(*itTrk);
-        if (mdcTrk->charge() == 1)
+        if (isGoodTrackForKsLambda(*itTrk))
         {
-            iTrkp.push_back(i);
-            if (m_HavePion && ispion())
+            if (mdcTrk->charge() == 1)
             {
-                ipionp.push_back(i);
-                mdcKalTrk->setPidType(RecMdcKalTrack::pion);
-                p4pionp.push_back(mdcKalTrk->p4(xmass[2]));
+                iTrkp.push_back(i);
+                if (m_HavePion && ispion())
+                {
+                    ipionp.push_back(i);
+                    mdcKalTrk->setPidType(RecMdcKalTrack::pion);
+                    p4pionp.push_back(mdcKalTrk->p4(xmass[2]));
+                }
             }
-            if (m_HaveKaon && iskaon())
+            if (mdcTrk->charge() == -1)
             {
-                ikaonp.push_back(i);
-                mdcKalTrk->setPidType(RecMdcKalTrack::kaon);
-                p4kaonp.push_back(mdcKalTrk->p4(xmass[3]));
-            }
-            if (isproton())
-            {
-                iprotonp.push_back(i);
-                mdcKalTrk->setPidType(RecMdcKalTrack::proton);
-                p4prtonp.push_back(mdcKalTrk->p4(xmass[4]));
+                iTrkm.push_back(i);
+                if (m_HavePion && ispion())
+                {
+                    ipionm.push_back(i);
+                    mdcKalTrk->setPidType(RecMdcKalTrack::pion);
+                    p4pionm.push_back(mdcKalTrk->p4(xmass[2]));
+                }
             }
         }
-        if (mdcTrk->charge() == -1)
+        if (isGoodTrack(*itTrk))
         {
-            iTrkm.push_back(i);
-            if (m_HavePion && ispion())
+            iGood.push_back(i);
+
+            if (mdcTrk->charge() == 1)
             {
-                ipionm.push_back(i);
-                mdcKalTrk->setPidType(RecMdcKalTrack::pion);
-                p4pionm.push_back(mdcKalTrk->p4(xmass[2]));
+                iTrkp.push_back(i);
+                // if (m_HavePion && ispion())
+                // {
+                //     ipionp.push_back(i);
+                //     mdcKalTrk->setPidType(RecMdcKalTrack::pion);
+                //     p4pionp.push_back(mdcKalTrk->p4(xmass[2]));
+                // }
+                if (m_HaveKaon && iskaon())
+                {
+                    ikaonp.push_back(i);
+                    mdcKalTrk->setPidType(RecMdcKalTrack::kaon);
+                    p4kaonp.push_back(mdcKalTrk->p4(xmass[3]));
+                }
+                if (isproton())
+                {
+                    iprotonp.push_back(i);
+                    mdcKalTrk->setPidType(RecMdcKalTrack::proton);
+                    p4protonp.push_back(mdcKalTrk->p4(xmass[4]));
+                }
+                if (iselectron())
+                {
+                    iep++;
+                }
             }
-            if (m_HaveKaon && iskaon())
+            if (mdcTrk->charge() == -1)
             {
-                ikaonm.push_back(i);
-                mdcKalTrk->setPidType(RecMdcKalTrack::kaon);
-                p4kaonm.push_back(mdcKalTrk->p4(xmass[3]));
+                iTrkm.push_back(i);
+                // if (m_HavePion && ispion())
+                // {
+                //     ipionm.push_back(i);
+                //     mdcKalTrk->setPidType(RecMdcKalTrack::pion);
+                //     p4pionm.push_back(mdcKalTrk->p4(xmass[2]));
+                // }
+                if (m_HaveKaon && iskaon())
+                {
+                    ikaonm.push_back(i);
+                    mdcKalTrk->setPidType(RecMdcKalTrack::kaon);
+                    p4kaonm.push_back(mdcKalTrk->p4(xmass[3]));
+                }
+                if (isproton())
+                {
+                    iprotonm.push_back(i);
+                    mdcKalTrk->setPidType(RecMdcKalTrack::proton);
+                    p4protonm.push_back(mdcKalTrk->p4(xmass[4]));
+                }
+                if (iselectron())
+                {
+                    iem++;
+                }
             }
-            if (isproton())
-            {
-                iprotonm.push_back(i);
-                mdcKalTrk->setPidType(RecMdcKalTrack::proton);
-                p4prtonm.push_back(mdcKalTrk->p4(xmass[4]));
-            }
+            nCharge += mdcTrk->charge();
         }
-        nCharge += mdcTrk->charge();
     }
     // Finish Good Charged Track Selection
     int nGood = iGood.size();
@@ -306,12 +319,12 @@ StatusCode Deltakkpi::execute()
     int nTrkp = iTrkp.size();
     int npionp = ipionp.size();
     int nkaonp = ikaonp.size();
-    int nprotonp = iprtonp.size();
+    int nprotonp = iprotonp.size();
 
     int nTrkm = iTrkm.size();
     int npionm = ipionm.size();
     int nkaonm = ikaonm.size();
-    int nprotonm = iprtonm.size();
+    int nprotonm = iprotonm.size();
 
     // *** select good shower *** //
     Vint iGam;
@@ -328,34 +341,83 @@ StatusCode Deltakkpi::execute()
         p4Gam.push_back(getP4(emcTrk, xorigin));
     }
     int nGam = iGam.size();
-    if (nGam < 1)
-        return StatusCode::SUCCESS;
 
     //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     double ECMS = 4.6000;
-    //boost pars
-    m_beta.setX(0.0110004);
-    m_beta.setY(0);
-    m_beta.setZ(0);
 
     // *** for kkpi *** //
     if (decay_kkpi)
-    {   
-        int passFlagLambdacm=0;     //是否有有效的lambda-事例
-        if(!(nprotonm==0||nkaonp==0||npionm==0)){ //要有反质子，K+与pi-存在，才进行基于其的重建
-            double delta_E;//lambdac-能量与平均能量只差，越小越好，而可选范围见文章
-            double mLcm=0;
-            for (int npm=0;npm<iprtonm;npm++){
-                for (int nkp=0;nkp<ikaonp;nkp++){
-                    for (int npim=0;npim<ipionm;npim++){
-                        HepLorentzVector p4Lcm=p4prtonm[npm]+p4kaonp[nkp]+p4pionm[npim];
-                        mLcm=p4Lcm.m();
+    {
+        int passFlagLambdacm = 0; //是否有有效的lambda-事例
+        if ((!(nprotonm == 0 || nkaonp == 0 || npionm == 0)))
+        {                          //要有反质子，K+与pi-存在，才进行基于其的重建
+            double delta_E = 9999; //lambdac-能量与平均能量只差，越小越好，而可选范围见文章
+            double mLcm = 0, mm = 0;
+            ;
+            for (int npm = 0; npm < nprotonm; npm++)
+            {
+                for (int nkp = 0; nkp < nkaonp; nkp++)
+                {
+                    for (int npim = 0; npim < npionm; npim++)
+                    {
+                        HepLorentzVector p4Lcm = p4protonm[npm] + p4kaonp[nkp] + p4pionm[npim];
+                        double E = p4Lcm.e();
+                        m = p4Lcm.m();
+                        if (abs(m) < 0.1)
+                            continue;
+                        ma = mm;
+                        m = p4Lcm.m();
+                        mDeltaE = delta_E;
+                        m_nt10->write();
+                        m_nchg_kkpi = p4Lcm.m();
+                        m_ntb->write();
                     }
                 }
             }
-
         }
-        m_nt10->write();
+
+        if ((!(nprotonm == 0 || npionm == 0 || npionp == 0)))
+        {
+            double delta_E = 9999; //lambdac-能量与平均能量只差，越小越好，而可选范围见文章
+            double mLcm = 0, mm = 0;
+            for (int npm = 0; npm < nprotonm; npm++)
+            {
+                for (int npip = 0; npip < npionp; npip++)
+                {
+                    for (int npim = 0; npim < npionm; npim++)
+                    {
+                        HepLorentzVector p4ks = p4pionp[npip] + p4pionm[npim];
+                        if (((m_nchg_kkpi = p4ks.m()) > 0.487) && (m_nchg_kkpi < 0.511))
+                        {
+                            HepLorentzVector p4Lcm = p4protonm[npm] + p4pionp[npip] + p4pionm[npim];
+                            double E = p4Lcm.e();
+                            // if (abs(E - ECMS / 2) < abs(delta_E))
+                            // {
+                            //     delta_E = (E - ECMS / 2);
+                            //     mLcm = p4Lcm.m();
+                            // }
+                            mLcm = p4Lcm.m();
+                            if (abs(mLcm) < 0.1)
+                                continue;
+                            m = p4Lcm.m();
+                            mDeltaE = E - 2.3;
+                            m_nt10->write();
+                            m_mDsgam_kkpi = p4Lcm.m();
+                            m_nta->write();
+                        }
+                        //m_ntb->write();
+                    }
+                }
+            }
+            // if (mLcm != 0)
+            // {
+            //     ma=mm;
+            //     m = mLcm;
+            //     mDeltaE = delta_E;
+            //     m_nt10->write();
+            // }
+        }
+
         // int pass_flag_kkpi = 0;
         // if (nkaonm == 0 || nkaonp == 0 || npionp == 0)
         //     return StatusCode::SUCCESS;
@@ -573,8 +635,8 @@ void Deltakkpi::preparePID(EvtRecTrack *track)
     PID->setMethod(PID->methodProbability());
     PID->setChiMinCut(4);
     PID->setRecTrack(track);
-    PID->usePidSys(PID->useDedx() | PID->useTof1() | PID->useTof2() | PID->useTof() | pid->useEmc()); // use PID sub-system
-    PID->identify(PID->onlyPion() | PID->onlyKaon() | PID->onlyProton() | pid->onlyElectron());
+    PID->usePidSys(PID->useDedx() | PID->useTof1() | PID->useTof2() | PID->useTof() | PID->useEmc()); // use PID sub-system
+    PID->identify(PID->onlyPion() | PID->onlyKaon() | PID->onlyProton() | PID->onlyElectron());
     //PID->identify(PID->onlyPion() | PID->onlyKaon() | PID->onlyProton());
     PID->calculate();
     mm_prob[0] = PID->probElectron();
@@ -632,14 +694,14 @@ bool Deltakkpi::iselectron_eop()
 
 bool Deltakkpi::ispion()
 {
-    if (mm_prob[2] >= 0.00 && mm_prob[2] >= mm_prob[0] && mm_prob[2] >= mm_prob[3] && mm_prob[2] >= mm_prob[4])
+    if (mm_prob[2] >= 0.001 && mm_prob[2] >= mm_prob[0] && mm_prob[2] >= mm_prob[3] && mm_prob[2] >= mm_prob[4])
         return true;
     return false;
 }
 
 bool Deltakkpi::iskaon()
 {
-    if (mm_prob[3] >= 0.00 && mm_prob[3] >= mm_prob[0] && mm_prob[3] >= mm_prob[2] && mm_prob[3] >= mm_prob[4])
+    if (mm_prob[3] >= 0.001 && mm_prob[3] >= mm_prob[0] && mm_prob[3] >= mm_prob[2] && mm_prob[3] >= mm_prob[4])
     {
         return true;
     }
@@ -648,8 +710,29 @@ bool Deltakkpi::iskaon()
 
 bool Deltakkpi::isproton()
 {
-    return mm_prob[4] >= 0.00 && mm_prob[4] >= mm_prob[0] && mm_prob[4] >= mm_prob[2] && mm_prob[4] >= mm_prob[3];
+    return mm_prob[4] >= 0.001 && mm_prob[4] >= mm_prob[0] && mm_prob[4] >= mm_prob[2] && mm_prob[4] >= mm_prob[3];
 }
+
+// bool Deltakkpi::ispion()
+// {
+//     if (mm_prob[2] >= 0.001 && mm_prob[2] >= mm_prob[0])
+//         return true;
+//     return false;
+// }
+
+// bool Deltakkpi::iskaon()
+// {
+//     if (mm_prob[3] >= 0.001&& mm_prob[3] >= mm_prob[2])
+//     {
+//         return true;
+//     }
+//     return false;
+// }
+
+// bool Deltakkpi::isproton()
+// {
+//     return mm_prob[4] >= 0.001 && mm_prob[4] >= mm_prob[3];
+// }
 
 bool Deltakkpi::isGoodShower(EvtRecTrack *trk)
 {
