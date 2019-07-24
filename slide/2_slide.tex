@@ -11,7 +11,11 @@
 \usepackage{subfigure}
 %\usepackage{biblatex}
 \newcommand{\dif}{\mathop{}\!\mathrm{d}}
-
+\setbeamertemplate{footline}{ 
+    \hspace{40pt} 
+    \large{\insertframenumber} 
+    \hspace{40pt}
+} 
 \title{Measurement of the absolute branching fraction of the inclusive semileptonic $\Lambda_c^+$ decay}
 \author{严启宇,黄吉鸿,卢玫澍}
 \institute{UCAS}
@@ -36,7 +40,7 @@
 
 \begin{frame}
     The lowest-lying charmed baryon $\Lambda_c^+$ was discovered more than 40 years ago\cite{knapp1976observation}\cite{abrams1980observation} , but its
-    decays have not yet been fully mapped out due to the many available modes (about 80 kinds according to PDG2018). \\ 
+    decays have not yet been fully mapped out due to the many available modes (about 80 kinds according to PDG2018). \\
     \vspace{0.2in}
     BESIII collaboration measured the absolute branching fraction of $\Lambda_c^+ \rightarrow \Lambda e^+ \nu_e$ to be $(3.63 \pm 0.43)\%$ \cite{ablikim2015measurement}.
     compared with the absolute branching fraction of $\Lambda_c^+ \rightarrow X e^+ \nu_e$ measured by MARK II as $(4.5 \pm 1.7)\%$.\cite{vella1982observation}
@@ -44,7 +48,7 @@
 \end{frame}
 \subsection{About this research}
 \begin{frame}
-    This research \cite{ablikim2018measurement} aims to measure the the absolute branching fraction of $\Lambda_c^+ \rightarrow X e^+ \nu_e$ more precisely, and to determine 
+    This research \cite{ablikim2018measurement} aims to measure the the absolute branching fraction of $\Lambda_c^+ \rightarrow X e^+ \nu_e$ more precisely, and to determine
     the inclusive semileptonic decay widths $\frac{\Gamma(\Lambda_c^+ \rightarrow X e^+ \nu_e)}{\bar{\Gamma}(D\rightarrow X e^+ \nu_e)}$.\\
     \vspace{0.2in}
     And the result is: $\mathcal{B}(\Lambda_c^+ \rightarrow X e^+ \nu_e) = (3.95\pm0.34\pm0.09)\%$ \\ $\frac{\Gamma(\Lambda_c^+ \rightarrow X e^+ \nu_e)}{\bar{\Gamma}(D\rightarrow X e^+ \nu_e)}=1.26\pm0.12$
@@ -52,7 +56,7 @@
 
 \subsection{What does the result tell us}
 \begin{frame}
-    $\mathcal{B}(\Lambda_c^+ \rightarrow X e^+ \nu_e) = (3.95\pm0.34\pm0.09)\%$: center value is larger than that of $\mathcal{B}(\Lambda_c^+ \rightarrow \Lambda e^+ \nu_e)=(3.63 \pm 0.43)\%$. But it's difference is less than $1\sigma$.
+    $\mathcal{B}(\Lambda_c^+ \rightarrow X e^+ \nu_e) = (3.95\pm0.34\pm0.09)\%$: center value is larger than that of $\mathcal{B}(\Lambda_c^+ \rightarrow \Lambda e^+ \nu_e)=(3.63 \pm 0.43)\%$. But its difference is less than $1\sigma$.
     It is difficult to determine if there is other kinds of semileptonic decay. if there is, its absolute branching fraction will be much smaller than that of $\Lambda_c^+ \rightarrow X e^+ \nu_e$\\
     \vspace{0.2in}
     $\frac{\Gamma(\Lambda_c^+ \rightarrow X e^+ \nu_e)}{\bar{\Gamma}(D\rightarrow X e^+ \nu_e)}=1.26\pm0.12$: This ratio is predicted to be $1.67$ using an effective-quark theory calculation. \cite{gronau2011ratios} and 1.2 based on a calculation using the heavy-quark expansion \cite{manohar1994inclusive}.
@@ -85,7 +89,7 @@
         \includegraphics[width = 0.75\textwidth]{Overallim.pdf}
         \caption{Reconstructed invariant mass from MC sample, by $\bar{p} K^0_S$ and $\bar{p} K^+ \pi^-$}
         \label{fig: mBC data}
-      \end{figure}
+    \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -95,7 +99,7 @@
         \includegraphics[width = 0.75\textwidth]{k0p.pdf}
         \caption{Reconstructed invariant mass from MC sample, by $\bar{p} K^0_S$ }
         \label{fig: mBC data}
-      \end{figure}
+    \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -105,7 +109,7 @@
         \includegraphics[width = 0.75\textwidth]{unnamed.pdf}
         \caption{Reconstructed invariant mass from MC sample, by $\bar{p} K^+ \pi^-$ }
         \label{fig: mBC data}
-      \end{figure}
+    \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -116,22 +120,134 @@
         \centering
         \caption{ Summary of $\Delta E$  requirements, detection efficiencies and  ST yields for the different tag modes.(Copied from article)}
         \begin{tabular}{lccc}
-        \hline
-        \hline
-        Tag {mode} & $\Delta E$ (MeV) & Efficiency (\%) & Yield\\
-        \hline
-        $\bar{\Lambda}_c^- \rightarrow \bar{p} K^0_S    $ & $(-21, 19)$ & $56.5\pm0.3$ & $1214\pm36$  \\
-        $\bar{\Lambda}_c^- \rightarrow \bar{p} K^+ \pi^-$ & $(-20, 16)$ & $50.1\pm0.1$ & $6092\pm82$  \\
-        \hline
-        \hline
+            \hline
+            \hline
+            Tag {mode}                                        & $\Delta E$ (MeV) & Efficiency (\%) & Yield       \\
+            \hline
+            $\bar{\Lambda}_c^- \rightarrow \bar{p} K^0_S    $ & $(-21, 19)$      & $56.5\pm0.3$    & $1214\pm36$ \\
+            $\bar{\Lambda}_c^- \rightarrow \bar{p} K^+ \pi^-$ & $(-20, 16)$      & $50.1\pm0.1$    & $6092\pm82$ \\
+            \hline
+            \hline
         \end{tabular}
         \label{table: summary of ST data}
     \end{table}
 \end{frame}
 
-\section{PID}
+\subsection{PID}
 \begin{frame}
-    
+    There are many restriction on PID. But even with them, there can still be mis-PID. If we regard mis-PID possibility as const, we can get:
+    \[
+        \label{equation: PID-unfolding}
+        \left(
+        \begin{array}{cccc}
+                N_{e}^{\rm obs}   \\
+                N_{\pi}^{\rm obs} \\
+                N_{K}^{\rm obs}   \\
+                N_{p}^{\rm obs}
+            \end{array}
+        \right)
+        =
+        \left(
+        \begin{array}{cccc}
+                P_{e \rightarrow e}   & P_{\pi \rightarrow e}   & P_{K \rightarrow e}   & P_{p \rightarrow e}   \\
+                P_{e \rightarrow \pi} & P_{\pi \rightarrow \pi} & P_{K \rightarrow \pi} & P_{p \rightarrow \pi} \\
+                P_{e \rightarrow K}   & P_{\pi \rightarrow K}   & P_{K \rightarrow K}   & P_{p \rightarrow K}   \\
+                P_{e \rightarrow p}   & P_{\pi \rightarrow p}   & P_{K \rightarrow p}   & P_{p \rightarrow p}
+            \end{array}
+        \right)
+        \left(
+        \begin{array}{cccc}
+                N_{e}^{\rm true}   \\
+                N_{\pi}^{\rm true} \\
+                N_{K}^{\rm true}   \\
+                N_{p}^{\rm true}
+            \end{array}
+        \right),
+    \]
+    The elements in this matrix are obtained by studying control sample, for example $J/\psi \rightarrow p\bar{p}\pi^+\pi^-$ and $J/\psi \rightarrow K^+K^-K^+K^-$.
+    Due to low $P_{\mu \rightarrow e}$, muon related PID is emitted.
+\end{frame}
+
+\subsection{RS-WS}
+\begin{frame}
+    Positron can be generated by other ways: $\gamma$ and $\pi^0$ can decay to Dalitz decays to produce positrons. But this process always comes with positron and electron in pairs. True electron yield can be obtained by $N_{RS}-N_{WS}$
+\end{frame}
+
+\section{Uncertainly}
+\begin{frame}
+    The calculation formula for final result is
+    \[\mathcal{B}(\Lambda_c^+ \rightarrow X e^+ \nu_e)=\frac{N^{\rm pro}(p_e>200~{\rm MeV}/c)}{N_{\rm tag}[1-f(p_e<200~{\rm MeV}/c)]}\]
+    $N^{\rm pro}(p_e>200~{\rm MeV}/c)$ is the corrected positron yield with momentum of more than $200~{\rm MeV}/c$. $N_{\rm tag}$ is the yield of $\bar{\Lambda}_c^-$. $f(p_e<200~{\rm MeV}/c)$ is the fraction of
+    the positron with a momentum less than $200~{\rm MeV}/c$.
+\end{frame}
+\subsection{Statistical}
+\begin{frame}
+    Statistical error comes with Number of positron
+    \begin{table}
+        \centering
+        \caption{ Positron yields in data after each procedure. The uncertainties are statistical.(copied from article)}
+        \begin{tabular}{lcc}
+            \hline
+            \hline
+            % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
+            %                                        & \multicolumn{2}{c}{$\Lambda_c^+ \rightarrow X e^+ \nu_e$}   \\
+            %                        &  {RS}               & {WS}  \\
+            %
+            $\Lambda_c^+ \rightarrow X e^+ \nu_e$ & {RS}           & {WS}          \\
+            \hline
+            Observed yields                                                        \\
+            ~~tag signal region                   & $228.0\pm15.1$ & $26.0\pm5.1$  \\
+            ~~tag sideband region                 & $11.0\pm3.3$   & {$2.0\pm1.4$} \\
+
+            PID unfolding                                                          \\
+            ~~tag signal region                   & $250.1\pm17.1$ & $28.3\pm6.2$  \\
+            ~~tag sideband region                 & $12.1\pm3.8$   & $1.7\pm1.5$   \\
+
+            Sideband subtraction                  & $240.7\pm17.4$ & $27.0\pm6.3$  \\
+            WS subtraction                        & $213.7\pm18.5$ &               \\
+            Correction of tracking efficiency     & $272.1\pm23.5$ &               \\
+            %Extrapolation                         & $288.3\pm24.9$            &\\
+
+            \hline
+            \hline
+        \end{tabular}
+        \label{table: summary of signal yields}
+    \end{table}
+\end{frame}
+\subsection{Systematic}
+
+\begin{frame}
+    \begin{table}
+        \centering
+        \caption{ {Sources of systematic uncertainties. And how to determine it}}
+        \begin{tabular}{ll}
+          \hline \hline
+          Source&         Comments\\
+          \hline
+          Tag yield&         signal shape, background shape \\
+          &and fit range\\
+          Tracking&         difference between data and MC\\
+          PID&         efficiency difference of $P_{e\rightarrow e}$ \\
+          Sideband subtraction&        change sideband region\\
+          Extrapolation&         change parameters of $\Lambda e^+ \nu_e$  \\
+          & and add unobserved channels\\
+          Data and MC statistics&         vary each element in deviation\\
+          \hline
+          Sum&                             \\
+          \hline \hline
+        \end{tabular}
+      
+        \label {table: summary of systematic uncertainties}
+      \end{table} 
+\end{frame}
+
+\section{Simlution result}
+\begin{frame}
+    Having done a GEANT-4 based Monte Carlo simlution, parameters related with $\Lambda_c^+$ are set to 
+    $$\mathcal{B}(\Lambda_c^+ \rightarrow X e^+ \nu_e) = 0.03$$
+    $$\mathcal{B}(\Lambda_c^+ \rightarrow pK^-\pi^+) = 0.48$$
+    $$\mathcal{B}(\Lambda_c^+ \rightarrow pK^0_s) = 0.48$$
+    With 5000 events generated, 2300 reconstructed. We get to $\mathcal{B}(\Lambda_c^+ \rightarrow X e^+ \nu_e) = 0.028$. it has a difference from input, maybe the statistical error?
 \end{frame}
 
 \section{References}
