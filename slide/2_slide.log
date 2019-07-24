@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2019.7.11)  24 JUL 2019 10:00
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2019.7.11)  24 JUL 2019 14:19
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -500,7 +500,7 @@ Package: amsthm 2017/10/31 v2.20.4
 ) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerbasethemes.sty)) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerthemedefault.sty (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerfontthemedefault.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamercolorthemedefault.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerinnerthemedefault.sty
 \beamer@dima=\dimen185
 \beamer@dimb=\dimen186
-) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerouterthemedefault.sty))) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerthemeBerlin.sty (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerouterthememiniframes.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamercolorthemewhale.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamercolorthemeorchid.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerinnerthemerectangles.sty)) (c:/texlive/2019/texmf-dist/tex/latex/ctex/ctex.sty (c:/texlive/2019/texmf-dist/tex/latex/l3kernel/expl3.sty
+) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerouterthemedefault.sty))) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerthemeAntibes.sty (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerouterthemetree.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamercolorthemewhale.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamercolorthemeorchid.sty) (c:/texlive/2019/texmf-dist/tex/latex/beamer/beamerinnerthemerectangles.sty)) (c:/texlive/2019/texmf-dist/tex/latex/ctex/ctex.sty (c:/texlive/2019/texmf-dist/tex/latex/l3kernel/expl3.sty
 Package: expl3 2019-04-06 L3 programming layer (loader) 
  (c:/texlive/2019/texmf-dist/tex/latex/l3kernel/expl3-code.tex
 Package: expl3 2019-04-06 L3 programming layer (code)
@@ -956,12 +956,6 @@ Package: subfigure 2002/03/15 v2.1.5 subfigure package
 (c:/texlive/2019/texmf-dist/tex/latex/subfigure/subfigure.cfg)
 \subfig@top=\skip71
 \subfig@bottom=\skip72
-) (c:/texlive/2019/texmf-dist/tex/latex/natbib/natbib.sty
-Package: natbib 2010/09/13 8.31b (PWD, AO)
-\bibhang=\skip73
-\bibsep=\skip74
-LaTeX Info: Redefining \cite on input line 694.
-\c@NAT@ctr=\count331
 ) (c:/texlive/2019/texmf-dist/tex/latex/cjk/texinput/UTF8/UTF8.bdg
 File: UTF8.bdg 2015/04/18 4.8.4
 ) (c:/texlive/2019/texmf-dist/tex/latex/cjk/texinput/UTF8/UTF8.enc
@@ -989,7 +983,14 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 20.
 
-(c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.aux)
+(c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.aux
+
+LaTeX Warning: Label `fig: mBC data' multiply defined.
+
+
+LaTeX Warning: Label `fig: mBC data' multiply defined.
+
+)
 \openout1 = `2_slide.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
@@ -1111,16 +1112,16 @@ LaTeX Font Info:    ... okay on input line 20.
 
 (c:/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count332
+\scratchcounter=\count331
 \scratchdimen=\dimen286
 \scratchbox=\box81
-\nofMPsegments=\count333
-\nofMParguments=\count334
+\nofMPsegments=\count332
+\nofMParguments=\count333
 \everyMPshowfont=\toks48
-\MPscratchCnt=\count335
+\MPscratchCnt=\count334
 \MPscratchDim=\dimen287
-\MPnumerator=\count336
-\makeMPintoPDFobject=\count337
+\MPnumerator=\count335
+\makeMPintoPDFobject=\count336
 \everyMPtoPDFconversion=\toks49
 ) (c:/texlive/2019/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
@@ -1141,7 +1142,7 @@ Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
  (c:/texlive/2019/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
-\c@section@level=\count338
+\c@section@level=\count337
 )
 LaTeX Info: Redefining \ref on input line 20.
 LaTeX Info: Redefining \pageref on input line 20.
@@ -1214,10 +1215,6 @@ Dictionary: translator-theorem-dictionary, Language: English
 ) ABD: EverySelectfont initializing macros
 LaTeX Info: Redefining \selectfont on input line 20.
  (c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.nav)
-LaTeX Font Info:    Try loading font information for C70+zhhei on input line 20.
- (c:/texlive/2019/texmf-dist/tex/latex/zhmetrics/c70zhhei.fd
-File: c70zhhei.fd 2009/09/23 4.8.2
-)
 LaTeX Font Info:    Try loading font information for U+msa on input line 20.
  (c:/texlive/2019/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
@@ -1233,6 +1230,10 @@ File: ursfs.fd 1998/03/24 rsfs font definition file (jk)
 LaTeX Font Info:    Try loading font information for OT1+mathkerncmss on input line 20.
  (c:/texlive/2019/texmf-dist/tex/latex/sansmathaccent/ot1mathkerncmss.fd
 File: ot1mathkerncmss.fd 2013/03/27 Fontinst v1.933 font definitions for OT1/mathkerncmss.
+)
+LaTeX Font Info:    Try loading font information for C70+zhhei on input line 24.
+ (c:/texlive/2019/texmf-dist/tex/latex/zhmetrics/c70zhhei.fd
+File: c70zhhei.fd 2009/09/23 4.8.2
 ) (c:/texlive/2019/texmf-dist/tex/generic/ctex/zhwindowsfonts.tex
 File: zhwindowsfonts.tex 2019/04/07 v2.4.15 Windows font map loader for pdfTeX and DVIPDFMx (CTEX)
 ) [1
@@ -1266,16 +1267,64 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 ] [5
 
+] [6
+
+] [7
+
+] [8
+
+]
+<Overallim.pdf, id=335, 569.12625pt x 375.4025pt>
+File: Overallim.pdf Graphic file (type pdf)
+<use Overallim.pdf>
+Package pdftex.def Info: Overallim.pdf  used on input line 89.
+(pdftex.def)             Requested size: 230.46739pt x 152.01999pt.
+
+Overfull \vbox (4.3552pt too high) detected at line 89
+ []
+
+[9
+
+ <c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/Overallim.pdf, page is rotated 90 degrees>]
+<k0p.pdf, id=411, 569.12625pt x 375.4025pt>
+File: k0p.pdf Graphic file (type pdf)
+<use k0p.pdf>
+Package pdftex.def Info: k0p.pdf  used on input line 99.
+(pdftex.def)             Requested size: 230.46739pt x 152.01999pt.
+pdfTeX warning (ext4): destination with the same identifier (name{fig:\040mBC\040data}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.99 \end{frame}
+                 [10
+
+ <c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/k0p.pdf, page is rotated 90 degrees>]
+<unnamed.pdf, id=486, 569.12625pt x 375.4025pt>
+File: unnamed.pdf Graphic file (type pdf)
+<use unnamed.pdf>
+Package pdftex.def Info: unnamed.pdf  used on input line 109.
+(pdftex.def)             Requested size: 230.46739pt x 152.01999pt.
+pdfTeX warning (ext4): destination with the same identifier (name{fig:\040mBC\040data}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.109 \end{frame}
+                  [11
+
+ <c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/unnamed.pdf, page is rotated 90 degrees>] [12
+
+] [13
+
 ] (c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.bbl
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\translate ' on input line 1.
-
-
 LaTeX Font Warning: Font shape `OT1/cmss/m/it' in size <10.95> not available
-(Font)              Font shape `OT1/cmss/m/sl' tried instead on input line 8.
+(Font)              Font shape `OT1/cmss/m/sl' tried instead on input line 26.
 
-) [6
+) [14
+
+ <c:/texlive/2019/texmf-dist/tex/latex/beamer/beamericonarticle.pdf>] [15
+
+
+] [16
+
 
 ]
 \tf@nav=\write6
@@ -1287,27 +1336,31 @@ LaTeX Font Warning: Font shape `OT1/cmss/m/it' in size <10.95> not available
 \tf@snm=\write8
 \openout8 = `2_slide.snm'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 54.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 54.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 142.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 142.
  (c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 54.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 54.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 142.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 142.
 Package rerunfilecheck Info: File `2_slide.out' has not changed.
-(rerunfilecheck)             Checksum: 67766CD262B5EB3072AA4CC494D73FA9;251.
+(rerunfilecheck)             Checksum: A9646686D829974845DC3ADBAEBF679B;960.
+
+
+LaTeX Warning: There were multiply-defined labels.
+
  ) 
 Here is how much of TeX's memory you used:
- 34289 strings out of 492623
- 632894 string characters out of 6133290
- 666322 words of memory out of 5000000
- 37463 multiletter control sequences out of 15000+600000
- 576528 words of font info for 173 fonts, out of 8000000 for 9000
+ 33699 strings out of 492623
+ 624579 string characters out of 6133290
+ 657478 words of memory out of 5000000
+ 36917 multiletter control sequences out of 15000+600000
+ 563901 words of font info for 126 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 56i,19n,70p,879b,791s stack positions out of 5000i,500n,10000p,200000b,80000s
-<c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on "c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.pdf" (6 pages, 184844 bytes).
+ 56i,17n,70p,880b,592s stack positions out of 5000i,500n,10000p,200000b,80000s
+<c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
+Output written on "c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.pdf" (16 pages, 253889 bytes).
 PDF statistics:
- 483 PDF objects out of 1000 (max. 8388607)
- 368 compressed objects within 4 object streams
- 19 named destinations out of 1000 (max. 500000)
- 235 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 797 PDF objects out of 1000 (max. 8388607)
+ 632 compressed objects within 7 object streams
+ 51 named destinations out of 1000 (max. 500000)
+ 150 words of extra memory for PDF output out of 10000 (max. 10000000)
 
