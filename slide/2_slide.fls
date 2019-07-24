@@ -530,8 +530,18 @@ INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei6d.tfm
 INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei62.tfm
 INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei78.tfm
 INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei7a.tfm
-INPUT c:/texlive/2019/texmf-dist/fonts/tfm/public/cm/cmssbx10.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei65.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei6b.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei60.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei8a.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei71.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei9a.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei8b.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei5d.tfm
 INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei81.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei6a.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei5c.tfm
+INPUT c:/texlive/2019/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei7b.tfm
 INPUT c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.bbl
 INPUT c:/Users/yanqi/OneDrive - mails.ucas.ac.cn/2019-HEP-Summer-School-Project-UCAS-/slide/2_slide.bbl
 INPUT c:/texlive/2019/texmf-dist/fonts/tfm/public/cm/cmssi10.tfm
@@ -572,10 +582,21 @@ INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
 INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb
 INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb
 INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb
-INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb
 INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi10.pfb
 INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmssi8.pfb
+INPUT c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb
